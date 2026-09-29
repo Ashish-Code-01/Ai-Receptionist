@@ -93,3 +93,5 @@ test-results/
 *.pid
 *.seed
 *.tgz
+
+google_service_account_key.json
