@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+:root {
+    /* Brand */
+    --primary: #E8590C;
+    --primary-hover: #C94A08;
+    --on-primary: #FFFFFF;
+    --secondary: #2F9E44;
+    --accent: #F5B700;
+    --accent-bg: rgba(245, 183, 0, 0.15);
+    --accent-border: rgba(245, 183, 0, 0.5);
+
+    /* Surfaces & text */
+    --bg: #FFF8F0;
+    --surface: #FFFFFF;
+    --text: #5C5046;
+    --text-h: #2B2118;
+    --muted: #7A6E64;
+    --border: #EADFD3;
+    --code-bg: #F6EDE2;
+    --shadow:
+        rgba(43, 33, 24, 0.10) 0 10px 15px -3px, rgba(43, 33, 24, 0.05) 0 4px 6px -2px;
+
+    /* Fonts */
+    --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, Consolas, monospace;
+
+    font: 18px/145% var(--sans);
+    letter-spacing: 0.18px;
+    color-scheme: light dark;
+    color: var(--text);
+    background: var(--bg);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    @media (max-width: 1024px) {
+        font-size: 16px;
+    }
+}
+
+/* Dark mode: system preference */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --primary: #FF7A3D;
+        --primary-hover: #FF9160;
+        --on-primary: #1C1612;
+        --secondary: #51CF66;
+        --accent: #FFD43B;
+        --accent-bg: rgba(255, 212, 59, 0.15);
+        --accent-border: rgba(255, 212, 59, 0.5);
+        --bg: #1C1612;
+        --surface: #2A221B;
+        --text: #B3A599;
+        --text-h: #FFF3E6;
+        --muted: #8F8378;
+        --border: #3D3128;
+        --code-bg: #241D17;
+        --shadow:
+            rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    }
+}
+
+/* Dark mode: manual toggle (document.documentElement.dataset.theme = "dark") */
+:root[data-theme="dark"] {
+    --primary: #FF7A3D;
+    --primary-hover: #FF9160;
+    --on-primary: #1C1612;
+    --secondary: #51CF66;
+    --accent: #FFD43B;
+    --accent-bg: rgba(255, 212, 59, 0.15);
+    --accent-border: rgba(255, 212, 59, 0.5);
+    --bg: #1C1612;
+    --surface: #2A221B;
+    --text: #B3A599;
+    --text-h: #FFF3E6;
+    --muted: #8F8378;
+    --border: #3D3128;
+    --code-bg: #241D17;
+    --shadow:
+        rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+}
