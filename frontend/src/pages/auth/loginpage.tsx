@@ -147,6 +147,19 @@ export default function Login({
                     <h1 className="m-0 font-[family-name:var(--heading)] text-[2rem] leading-[1.1] tracking-[-.02em] text-brand-text-h">Welcome back</h1>
                     <p className="mt-[-.5rem] mb-[.25rem] leading-[1.5] text-brand-muted">Sign in to {productName} to see today's calls and bookings.</p>
 
+                    <button
+                        type="button"
+                        className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-brand-border bg-brand-surface px-4 py-3 font-[inherit] text-sm font-semibold text-brand-text-h transition-colors hover:bg-brand-bg focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
+                    >
+                        <span className="font-bold text-[#4285F4]" aria-hidden="true">G</span>
+                        Continue with Google
+                    </button>
+                    <div className="flex items-center gap-3 text-xs text-brand-muted" aria-hidden="true">
+                        <span className="h-px flex-1 bg-brand-border" />
+                        or continue with email
+                        <span className="h-px flex-1 bg-brand-border" />
+                    </div>
+
                     {formError && (
                         <p className="m-0 rounded-[10px] border border-brand-danger bg-[color-mix(in_srgb,var(--danger,#C92A2A)_8%,transparent)] px-[.85rem] py-[.7rem] text-[.92rem] text-brand-danger" role="alert">
                             {formError}

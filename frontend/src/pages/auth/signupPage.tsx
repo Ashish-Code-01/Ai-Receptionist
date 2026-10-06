@@ -40,22 +40,24 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9\s()-]{7,20}$/;
 
 const inputClassName =
-    "box-border w-full rounded-[10px] border border-brand-border bg-brand-bg px-[.9rem] py-[.8rem] font-[inherit] text-brand-text-h transition-[border-color,box-shadow] duration-150 placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_18%,transparent)] focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2 aria-[invalid=true]:border-brand-danger motion-reduce:transition-none";
+    "box-border w-full rounded-[10px] border border-brand-border bg-brand-bg px-3 py-2.5 font-[inherit] text-sm text-brand-text-h transition-[border-color,box-shadow] duration-150 placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_18%,transparent)] focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2 aria-[invalid=true]:border-brand-danger motion-reduce:transition-none";
 
 function Field({
     id,
     label,
     error,
     children,
+    className = "",
 }: {
     id: string;
     label: string;
     error?: string;
     children: React.ReactNode;
+    className?: string;
 }) {
     return (
-        <div className="grid gap-[.4rem]">
-            <label className="text-[.9rem] font-semibold text-brand-text-h" htmlFor={id}>
+        <div className={`grid content-start gap-1.5 ${className}`}>
+            <label className="text-[.85rem] font-semibold text-brand-text-h" htmlFor={id}>
                 {label}
             </label>
             {children}
@@ -119,7 +121,7 @@ export default function SignupPage({
 
     return (
         <main className="grid min-h-screen grid-cols-[minmax(0,5fr)_minmax(0,6fr)] bg-brand-bg font-[family-name:var(--sans)] text-brand-text max-[800px]:grid-cols-1">
-            <aside className="relative flex flex-col justify-between gap-8 overflow-hidden bg-brand-primary p-10 text-brand-on-primary before:pointer-events-none before:absolute before:inset-0 before:bg-[repeating-radial-gradient(circle_at_88%_14%,transparent_0_54px,color-mix(in_srgb,var(--on-primary)_11%,transparent)_54px_56px)] [&>*]:relative max-[800px]:gap-8 max-[800px]:px-6 max-[800px]:py-5 max-[800px]:before:hidden">
+            <aside className="relative flex flex-col justify-between gap-6 overflow-hidden bg-brand-primary p-8 text-brand-on-primary before:pointer-events-none before:absolute before:inset-0 before:bg-[repeating-radial-gradient(circle_at_88%_14%,transparent_0_54px,color-mix(in_srgb,var(--on-primary)_11%,transparent)_54px_56px)] [&>*]:relative max-[800px]:gap-5 max-[800px]:px-6 max-[800px]:py-4 max-[800px]:before:hidden">
                 <Link
                     to="/"
                     className="flex w-fit items-center gap-[.65rem] font-[family-name:var(--heading)] text-[1.15rem] font-bold text-brand-on-primary no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-on-primary"
@@ -133,18 +135,18 @@ export default function SignupPage({
                 </Link>
 
                 <div className="max-w-[30rem]">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[.7rem] font-semibold">
                         <span className="size-2 rounded-full bg-brand-accent" />
                         Your clinic, running smoother
                     </span>
-                    <h1 className="mt-6 font-[family-name:var(--heading)] text-[clamp(2rem,4vw,3.5rem)] font-bold leading-[1.08] tracking-[-.03em]">
+                    <h1 className="mt-4 font-[family-name:var(--heading)] text-[clamp(1.8rem,3vw,2.8rem)] font-bold leading-[1.08] tracking-[-.03em]">
                         Make every first impression a great one.
                     </h1>
-                    <p className="mt-5 max-w-[28rem] leading-7 text-brand-on-primary/80">
+                    <p className="mt-3 max-w-[28rem] text-sm leading-6 text-brand-on-primary/80">
                         Create your account to organize appointments, simplify reception, and give every patient a smoother experience.
                     </p>
 
-                    <ul className="mt-8 grid gap-4 p-0 text-sm">
+                    <ul className="mt-5 grid gap-2.5 p-0 text-[.85rem]">
                         {[
                             "Keep appointments and patient details organized",
                             "Give your team one clear view of the daily queue",
@@ -160,13 +162,13 @@ export default function SignupPage({
                     </ul>
                 </div>
 
-                <p className="m-0 text-sm text-brand-on-primary/70">
+                <p className="m-0 text-xs text-brand-on-primary/70">
                     A calmer, more organized front desk starts here.
                 </p>
             </aside>
 
-            <section className="grid place-items-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-[length:22px_22px] px-5 py-8">
-                <div className="box-border w-full max-w-[30rem] rounded-[20px] border border-brand-border bg-brand-surface p-9 shadow-brand max-[800px]:p-6">
+            <section className="grid place-items-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-[length:22px_22px] px-5 py-5">
+                <div className="box-border w-full max-w-[34rem] rounded-[20px] border border-brand-border bg-brand-surface p-6 shadow-brand max-[800px]:p-5">
                     {created ? (
                         <div className="py-4 text-center" role="status">
                             <span className="mx-auto grid size-14 place-items-center rounded-full bg-brand-accent-bg text-2xl font-bold text-brand-secondary" aria-hidden="true">
@@ -187,22 +189,35 @@ export default function SignupPage({
                         </div>
                     ) : (
                         <>
-                            <div className="mb-7">
-                                <p className="mb-2 text-sm font-semibold text-brand-primary">GET STARTED</p>
-                                <h2 className="m-0 font-[family-name:var(--heading)] text-[2rem] font-bold leading-tight tracking-[-.02em] text-brand-text-h">
+                            <div className="mb-5">
+                                <p className="mb-1 text-xs font-semibold tracking-wide text-brand-primary">GET STARTED</p>
+                                <h2 className="m-0 font-[family-name:var(--heading)] text-[1.65rem] font-bold leading-tight tracking-[-.02em] text-brand-text-h">
                                     Create your account
                                 </h2>
-                                <p className="mt-2 leading-6 text-brand-muted">
+                                <p className="mt-1.5 text-sm leading-5 text-brand-muted">
                                     Set up your account and bring your reception into one place.
                                 </p>
                             </div>
 
-                            <form className="grid gap-5" onSubmit={handleSubmit} noValidate>
+                            <form className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2" onSubmit={handleSubmit} noValidate>
                                 {formError && (
-                                    <p className="m-0 rounded-[10px] border border-brand-danger bg-[color-mix(in_srgb,var(--danger,#C92A2A)_8%,transparent)] px-[.85rem] py-[.7rem] text-[.92rem] text-brand-danger" role="alert">
+                                    <p className="col-span-full m-0 rounded-[10px] border border-brand-danger bg-[color-mix(in_srgb,var(--danger,#C92A2A)_8%,transparent)] px-[.85rem] py-[.7rem] text-[.92rem] text-brand-danger" role="alert">
                                         {formError}
                                     </p>
                                 )}
+
+                                <button
+                                    type="button"
+                                    className="col-span-full flex w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-brand-border bg-brand-surface px-4 py-2.5 font-[inherit] text-sm font-semibold text-brand-text-h transition-colors hover:bg-brand-bg focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
+                                >
+                                    <span className="font-bold text-[#4285F4]" aria-hidden="true">G</span>
+                                    Continue with Google
+                                </button>
+                                <div className="col-span-full flex items-center gap-3 text-xs text-brand-muted" aria-hidden="true">
+                                    <span className="h-px flex-1 bg-brand-border" />
+                                    or continue with email
+                                    <span className="h-px flex-1 bg-brand-border" />
+                                </div>
 
                                 <Field id="full_name" label="Full name" error={errors.full_name}>
                                     <input
@@ -278,7 +293,7 @@ export default function SignupPage({
                                     </div>
                                 </Field>
 
-                                <Field id="confirmPassword" label="Confirm password" error={errors.confirmPassword}>
+                                <Field id="confirmPassword" label="Confirm password" error={errors.confirmPassword} className="sm:col-span-2">
                                     <input
                                         id="confirmPassword"
                                         name="confirmPassword"
@@ -296,7 +311,7 @@ export default function SignupPage({
 
                                 <button
                                     type="submit"
-                                    className="mt-1 flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border-0 bg-brand-primary px-4 py-3 font-[inherit] font-semibold text-brand-on-primary shadow-[0_8px_20px_color-mix(in_srgb,var(--primary)_35%,transparent)] transition-[background,transform] duration-150 enabled:hover:[transform:translateY(-1px)] enabled:hover:bg-brand-primary-hover disabled:cursor-progress disabled:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary motion-reduce:transition-none"
+                                    className="col-span-full mt-1 flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border-0 bg-brand-primary px-4 py-2.5 font-[inherit] text-sm font-semibold text-brand-on-primary shadow-[0_8px_20px_color-mix(in_srgb,var(--primary)_35%,transparent)] transition-[background,transform] duration-150 enabled:hover:[transform:translateY(-1px)] enabled:hover:bg-brand-primary-hover disabled:cursor-progress disabled:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary motion-reduce:transition-none"
                                     disabled={loading}
                                 >
                                     {loading && (
@@ -306,7 +321,7 @@ export default function SignupPage({
                                 </button>
                             </form>
 
-                            <p className="mt-6 mb-0 text-center text-sm text-brand-muted">
+                            <p className="mt-4 mb-0 text-center text-sm text-brand-muted">
                                 Already have an account?{" "}
                                 <Link className="font-semibold text-brand-primary-hover no-underline hover:underline focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2" to="/login">
                                     Sign in
