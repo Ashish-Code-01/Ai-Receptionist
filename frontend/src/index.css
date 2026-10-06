@@ -1,5 +1,48 @@
 @import "tailwindcss";
 
+@theme inline {
+    --color-brand-accent: var(--accent);
+    --color-brand-accent-bg: var(--accent-bg);
+    --color-brand-accent-border: var(--accent-border);
+    --color-brand-bg: var(--bg);
+    --color-brand-code-bg: var(--code-bg);
+    --color-brand-dark-bg: var(--dark-bg);
+    --color-brand-danger: var(--danger, #C92A2A);
+    --color-brand-border: var(--border);
+    --color-brand-muted: var(--muted);
+    --color-brand-nav-bg: var(--nav-bg);
+    --color-brand-on-dark: var(--on-dark);
+    --color-brand-on-dark-muted: var(--on-dark-muted);
+    --color-brand-on-primary: var(--on-primary);
+    --color-brand-primary: var(--primary);
+    --color-brand-primary-hover: var(--primary-hover);
+    --color-brand-secondary: var(--secondary);
+    --color-brand-surface: var(--surface);
+    --color-brand-text: var(--text);
+    --color-brand-text-h: var(--text-h);
+    --shadow-brand: var(--shadow);
+    --shadow-brand-card: var(--shadow), 0 24px 48px rgba(0, 0, 0, .18);
+}
+
+@theme {
+    --animate-login-talk: login-talk 1.3s ease-in-out infinite;
+    --animate-login-blink: login-blink 1.6s ease-in-out infinite;
+    --animate-login-spin: login-spin .7s linear infinite;
+
+    @keyframes login-talk {
+        0%, 100% { transform: scaleY(.15); }
+        50% { transform: scaleY(var(--h)); }
+    }
+
+    @keyframes login-blink {
+        50% { opacity: .35; }
+    }
+
+    @keyframes login-spin {
+        to { transform: rotate(360deg); }
+    }
+}
+
 :root {
     /* Brand */
     --primary: #E8590C;

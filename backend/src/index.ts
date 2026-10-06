@@ -2,13 +2,11 @@ import express, { Request, Response } from "express";
 import http, { createServer } from "http";
 import "dotenv/config";
 import UserRoute from "./routes/user.route.js"
-import { setupWebSocketServer } from "./utils/exotel-websocket.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8080;
 
 const server = http.createServer(app)
-setupWebSocketServer(server)
 
 app.use(express.json());
 
