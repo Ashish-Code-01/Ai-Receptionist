@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { rateLimiter } from "../helpers/rateLimiting.js";
-import { userLogin, userRegister } from "../controllers/user.controller.js";
+import { userLogin, userLogout, userRegister, userSession } from "../controllers/user.controller.js";
 
 
 const route = Router()
 
-route.get('/', rateLimiter({ windowMs: 15 * 60_000, max: 3, prefix: "login", keyGenerator: (req) => `${req.ip}:${req.body?.identity ?? "unknown"}`, }), userLogin)
-route.post('/', rateLimiter({ windowMs: 15 * 60_000, max: 2, prefix: "register", keyGenerator: (req) => `${req.ip}:${req.body?.identity ?? "unknown"}`, }), userRegister)
+route.post('/login', rateLimiter({ windowMs: 15 * 60_000, max: 30, prefix: "login", keyGenerator: (req) => `${req.ip}:${req.body?.identity ?? "unknown"}`, }), userLogin)
+route.get('/session', userSession)
+route.post('/logout', userLogout)
+route.post('/signup', rateLimiter({ windowMs: 15 * 60_000, max: 20, prefix: "register", keyGenerator: (req) => `${req.ip}:${req.body?.identity ?? "unknown"}`, }), userRegister)
 
 export default route

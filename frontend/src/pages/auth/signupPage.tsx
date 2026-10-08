@@ -1,5 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { API_BASE_URL } from "../../constants/apis";
 
 type SignupData = {
     full_name: string;
@@ -9,35 +11,22 @@ type SignupData = {
 };
 
 type SignupProps = {
-    onSubmit?: (data: SignupData) => Promise<void>;
     productName?: string;
 };
 
 type FieldErrors = Partial<Record<keyof SignupData | "confirmPassword", string>>;
 
-async function defaultSubmit(data: SignupData) {
-    const response = await fetch("/user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
-
-    let body: { message?: string } = {};
-    try {
-        body = await response.json();
-    } catch {
-        if (response.ok) {
-            throw new Error("The server returned an invalid response. Please try again.");
-        }
-    }
-
-    if (!response.ok) {
-        throw new Error(body.message ?? "Could not create your account. Please try again.");
-    }
-}
+const SIGNUP_URL = `${API_BASE_URL}/user/signup`;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^\+?[0-9\s()-]{7,20}$/;
+// Allowed chars only; digit count is checked in isValidPhone()
+const PHONE_CHARS_RE = /^\+?[0-9\s()-]+$/;
+
+function isValidPhone(value: string) {
+    if (!PHONE_CHARS_RE.test(value)) return false;
+    const digits = value.replace(/\D/g, "");
+    return digits.length >= 10 && digits.length <= 15;
+}
 
 const inputClassName =
     "box-border w-full rounded-[10px] border border-brand-border bg-brand-bg px-3 py-2.5 font-[inherit] text-sm text-brand-text-h transition-[border-color,box-shadow] duration-150 placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_18%,transparent)] focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2 aria-[invalid=true]:border-brand-danger motion-reduce:transition-none";
@@ -52,7 +41,7 @@ function Field({
     id: string;
     label: string;
     error?: string;
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
 }) {
     return (
@@ -71,7 +60,6 @@ function Field({
 }
 
 export default function SignupPage({
-    onSubmit = defaultSubmit,
     productName = "Receptionist",
 }: SignupProps) {
     const [fullName, setFullName] = useState("");
@@ -85,35 +73,55 @@ export default function SignupPage({
     const [loading, setLoading] = useState(false);
     const [created, setCreated] = useState(false);
 
+    // Typing shuru karte hi us field ka error hata do
+    function clearError(key: keyof FieldErrors) {
+        setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
+    }
+
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (loading) return;
         setFormError("");
 
         const next: FieldErrors = {};
         const trimmedName = fullName.trim();
-        const trimmedEmail = email.trim();
+        const trimmedEmail = email.trim().toLowerCase();
         const trimmedPhone = phone.trim();
 
         if (!trimmedName) next.full_name = "Enter your full name.";
         if (!EMAIL_RE.test(trimmedEmail)) next.email = "Enter a valid email address.";
-        if (!PHONE_RE.test(trimmedPhone)) next.phone = "Enter a valid phone number.";
+        if (!isValidPhone(trimmedPhone)) next.phone = "Enter a valid phone number (10 to 15 digits).";
         if (password.length < 8) next.pass = "Use at least 8 characters for your password.";
         if (confirmPassword !== password) next.confirmPassword = "Passwords do not match.";
 
         setErrors(next);
         if (Object.keys(next).length > 0) return;
 
+        // Spaces/dashes/brackets hata do, taaki login ke identity lookup se match kare
+        const normalizedPhone = trimmedPhone.replace(/[\s\-()]/g, "");
+
         setLoading(true);
         try {
-            await onSubmit({
+            const payload: SignupData = {
                 full_name: trimmedName,
                 email: trimmedEmail,
-                phone: trimmedPhone,
+                phone: normalizedPhone,
                 pass: password,
-            });
+            };
+            await axios.post(SIGNUP_URL, payload);
             setCreated(true);
         } catch (error) {
-            setFormError(error instanceof Error ? error.message : "Could not create your account. Please try again.");
+            let message = "Could not create your account. Please try again.";
+
+            if (axios.isAxiosError<{ message?: string }>(error)) {
+                const status = error.response?.status;
+                if (error.response?.data?.message) message = error.response.data.message;
+                else if (status === 409) message = "An account with this email or phone already exists. Try signing in.";
+                else if (status === 429) message = "Too many attempts. Please wait and try again.";
+                else if (!error.response) message = "Network error. Check your connection.";
+            }
+
+            setFormError(message);
         } finally {
             setLoading(false);
         }
@@ -146,7 +154,7 @@ export default function SignupPage({
                         Create your account to organize appointments, simplify reception, and give every patient a smoother experience.
                     </p>
 
-                    <ul className="mt-5 grid gap-2.5 p-0 text-[.85rem]">
+                    <ul className="mt-5 grid list-none gap-2.5 p-0 text-[.85rem]">
                         {[
                             "Keep appointments and patient details organized",
                             "Give your team one clear view of the daily queue",
@@ -178,7 +186,7 @@ export default function SignupPage({
                                 Account created
                             </h2>
                             <p className="mt-2 leading-6 text-brand-muted">
-                                Your {productName} account is ready. Sign in to get started.
+                                Your {productName} account is ready. Sign in to finish setting up your clinic details.
                             </p>
                             <Link
                                 to="/login"
@@ -190,12 +198,12 @@ export default function SignupPage({
                     ) : (
                         <>
                             <div className="mb-5">
-                                <p className="mb-1 text-xs font-semibold tracking-wide text-brand-primary">GET STARTED</p>
+                                <p className="mb-1 text-xs font-bold tracking-[.14em] text-brand-primary">NEW ACCOUNT</p>
                                 <h2 className="m-0 font-[family-name:var(--heading)] text-[1.65rem] font-bold leading-tight tracking-[-.02em] text-brand-text-h">
-                                    Create your account
+                                    Set up your account
                                 </h2>
                                 <p className="mt-1.5 text-sm leading-5 text-brand-muted">
-                                    Set up your account and bring your reception into one place.
+                                    Create a workspace for your clinic and team.
                                 </p>
                             </div>
 
@@ -206,16 +214,22 @@ export default function SignupPage({
                                     </p>
                                 )}
 
+                                {/* TODO: Google OAuth abhi wired nahi hai, onClick add karna hai */}
                                 <button
                                     type="button"
-                                    className="col-span-full flex w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-brand-border bg-brand-surface px-4 py-2.5 font-[inherit] text-sm font-semibold text-brand-text-h transition-colors hover:bg-brand-bg focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
+                                    className="col-span-full flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-[#DADCE0] bg-white px-4 py-3 font-[inherit] text-sm font-semibold text-[#3C4043] shadow-[0_2px_5px_rgba(60,64,67,.16)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-px hover:border-[#B8C5D3] hover:shadow-[0_5px_14px_rgba(60,64,67,.2)] focus-visible:outline-2 focus-visible:outline-[#4285F4] focus-visible:outline-offset-2 motion-reduce:transition-none"
                                 >
-                                    <span className="font-bold text-[#4285F4]" aria-hidden="true">G</span>
+                                    <svg className="size-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.05 5.05 0 0 1-2.2 3.31v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.09Z" />
+                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84A11 11 0 0 0 12 23Z" />
+                                        <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.15a11 11 0 0 0 0 9.88l3.69-2.84Z" />
+                                        <path fill="#EA4335" d="M12 5.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.85 6.06l3.69 2.84c.87-2.6 3.3-4.54 6.16-4.54Z" />
+                                    </svg>
                                     Continue with Google
                                 </button>
                                 <div className="col-span-full flex items-center gap-3 text-xs text-brand-muted" aria-hidden="true">
                                     <span className="h-px flex-1 bg-brand-border" />
-                                    or continue with email
+                                    OR SIGN UP WITH EMAIL
                                     <span className="h-px flex-1 bg-brand-border" />
                                 </div>
 
@@ -227,7 +241,10 @@ export default function SignupPage({
                                         className={inputClassName}
                                         autoComplete="name"
                                         value={fullName}
-                                        onChange={(event) => setFullName(event.target.value)}
+                                        onChange={(event) => {
+                                            setFullName(event.target.value);
+                                            clearError("full_name");
+                                        }}
                                         aria-invalid={!!errors.full_name}
                                         aria-describedby={errors.full_name ? "full_name-error" : undefined}
                                         placeholder="Your name"
@@ -242,8 +259,13 @@ export default function SignupPage({
                                         type="email"
                                         className={inputClassName}
                                         autoComplete="email"
+                                        autoCapitalize="none"
+                                        spellCheck={false}
                                         value={email}
-                                        onChange={(event) => setEmail(event.target.value)}
+                                        onChange={(event) => {
+                                            setEmail(event.target.value);
+                                            clearError("email");
+                                        }}
                                         aria-invalid={!!errors.email}
                                         aria-describedby={errors.email ? "email-error" : undefined}
                                         placeholder="you@business.com"
@@ -259,10 +281,13 @@ export default function SignupPage({
                                         className={inputClassName}
                                         autoComplete="tel"
                                         value={phone}
-                                        onChange={(event) => setPhone(event.target.value)}
+                                        onChange={(event) => {
+                                            setPhone(event.target.value);
+                                            clearError("phone");
+                                        }}
                                         aria-invalid={!!errors.phone}
                                         aria-describedby={errors.phone ? "phone-error" : undefined}
-                                        placeholder="+1 (555) 123-4567"
+                                        placeholder="+91 98765 43210"
                                         required
                                     />
                                 </Field>
@@ -276,7 +301,10 @@ export default function SignupPage({
                                             className={`${inputClassName} pr-16`}
                                             autoComplete="new-password"
                                             value={password}
-                                            onChange={(event) => setPassword(event.target.value)}
+                                            onChange={(event) => {
+                                                setPassword(event.target.value);
+                                                clearError("pass");
+                                            }}
                                             aria-invalid={!!errors.pass}
                                             aria-describedby={errors.pass ? "password-error" : undefined}
                                             placeholder="At least 8 characters"
@@ -301,7 +329,10 @@ export default function SignupPage({
                                         className={inputClassName}
                                         autoComplete="new-password"
                                         value={confirmPassword}
-                                        onChange={(event) => setConfirmPassword(event.target.value)}
+                                        onChange={(event) => {
+                                            setConfirmPassword(event.target.value);
+                                            clearError("confirmPassword");
+                                        }}
                                         aria-invalid={!!errors.confirmPassword}
                                         aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
                                         placeholder="Enter your password again"

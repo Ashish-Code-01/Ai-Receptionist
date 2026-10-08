@@ -1,7 +1,13 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import pool from "../config/db.js";
-import { signToken } from "../helpers/token.js";
+import {
+    readSessionToken,
+    SESSION_COOKIE_NAME,
+    SESSION_COOKIE_OPTIONS,
+    signToken,
+    verifyToken,
+} from "../helpers/token.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 
 export const userLogin = async (req: Request, res: Response) => {
@@ -30,18 +36,42 @@ export const userLogin = async (req: Request, res: Response) => {
         }
 
         const token = signToken(user.id, user.email);
+        res.cookie(SESSION_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
 
         const { password, ...safeUser } = user;
 
         return res.status(200).send({
             message: "User login successful",
             user: safeUser,
-            token,
         });
     } catch (error) {
         console.error(error);
         return res.status(500).send({ message: "Something went wrong" });
     }
+};
+
+export const userSession = (req: Request, res: Response) => {
+    const token = readSessionToken(req.headers.cookie);
+    if (!token) {
+        return res.status(401).send({ message: "Authentication required" });
+    }
+
+    try {
+        verifyToken(token);
+        return res.status(200).send({ authenticated: true });
+    } catch {
+        return res.status(401).send({ message: "Authentication required" });
+    }
+};
+
+export const userLogout = (_req: Request, res: Response) => {
+    res.clearCookie(SESSION_COOKIE_NAME, {
+        httpOnly: SESSION_COOKIE_OPTIONS.httpOnly,
+        secure: SESSION_COOKIE_OPTIONS.secure,
+        sameSite: SESSION_COOKIE_OPTIONS.sameSite,
+        path: SESSION_COOKIE_OPTIONS.path,
+    });
+    return res.status(204).end();
 };
 
 export const userRegister = async (req: Request, res: Response) => {
@@ -84,12 +114,9 @@ export const userRegister = async (req: Request, res: Response) => {
             email,
         };
 
-        const token = signToken(user.id, user.email);
-
         return res.status(201).send({
             message: "User registered successfully",
             user,
-            token,
         });
 
     } catch (error) {

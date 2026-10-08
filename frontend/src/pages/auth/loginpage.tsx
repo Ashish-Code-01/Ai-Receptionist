@@ -1,31 +1,21 @@
+import axios from "axios";
 import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
-
-type Credentials = { email: string; password: string; remember: boolean };
+import { API_BASE_URL } from "../../constants/apis";
 
 type LoginProps = {
-    /** Apna login logic yahan pass karo. Default: POST /api/auth/login (Node backend). */
-    onSubmit?: (data: Credentials) => Promise<void>;
     onForgotPassword?: () => void;
     productName?: string;
 };
 
-async function defaultSubmit(data: Credentials) {
-    const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.message ?? "Email or password is incorrect.");
-    }
-}
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_CHARS_RE = /^\+?[0-9\s()-]+$/;
 const BARS = Array.from({ length: 30 }, (_, i) => i);
 
-// Demo call: `at` = second (in a 14s loop) when the line appears
+function isValidPhone(value: string) {
+    if (!PHONE_CHARS_RE.test(value)) return false;
+    const digits = value.replace(/\D/g, "");
+    return digits.length >= 10 && digits.length <= 15;
+}
 const CHAT = [
     { from: "caller", at: 1, text: "Hi, can I move my Thursday appointment?" },
     { from: "ai", at: 3, text: "Of course. I have Friday at 10:30 or Monday at 9:00." },
@@ -40,46 +30,74 @@ const PhoneIcon = () => (<svg {...icon} aria-hidden="true"><path d="M5 4h4l2 5-2
 const CheckIcon = () => (<svg {...icon} aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></svg>);
 
 export default function Login({
-    onSubmit = defaultSubmit,
     onForgotPassword,
     productName = "Receptionist",
 }: LoginProps) {
-    const [email, setEmail] = useState("");
+    const [identity, setIdentity] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+    const [errors, setErrors] = useState<{ identity?: string; password?: string }>({});
     const [formError, setFormError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const [sec, setSec] = useState(0);
+    // typeof window guard: SSR (Next.js) pe crash nahi hoga
+    const [reducedMotion] = useState(
+        () =>
+            typeof window !== "undefined" &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+    const [sec, setSec] = useState(reducedMotion ? 11 : 0);
     useEffect(() => {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            setSec(11);
-            return;
-        }
+        if (reducedMotion) return;
         const id = setInterval(() => setSec((s) => s + 1), 1000);
         return () => clearInterval(id);
-    }, []);
+    }, [reducedMotion]);
     const phase = sec % 14;
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        if (loading) return;
         setFormError("");
 
+        const raw = identity.trim();
+        const isEmail = EMAIL_RE.test(raw);
+        const isPhone = !isEmail && isValidPhone(raw);
+
         const next: typeof errors = {};
-        if (!EMAIL_RE.test(email.trim())) next.email = "Enter a valid email address.";
+        if (!raw) next.identity = "Enter your email or phone number.";
+        else if (!isEmail && !isPhone) next.identity = "Enter a valid email or phone number.";
         if (!password) next.password = "Enter your password.";
+
         setErrors(next);
         if (Object.keys(next).length) return;
-        // TODO: Add recaptcha here if needed
+
+        // Email -> lowercase, phone -> spaces/dashes/brackets hata do
+        const normalized = isEmail ? raw.toLowerCase() : raw.replace(/[\s\-()]/g, "");
 
         setLoading(true);
         try {
-            await onSubmit({ email: email.trim(), password, remember });
-            window.location.assign("/dashboard"); // apna route daal lena
+            await axios.post(`${API_BASE_URL}/user/login`, {
+                identity: normalized,
+                pass: password,
+            }, {
+                withCredentials: true,
+            });
+            window.location.href = "/dashboard";
         } catch (err) {
-            setFormError(err instanceof Error ? err.message : "Could not sign in. Try again.");
+            let message = "Could not sign in. Try again.";
+
+            if (axios.isAxiosError<{ message?: string }>(err)) {
+                const status = err.response?.status;
+                if (err.response?.data?.message) message = err.response.data.message;
+                else if (status === 401) message = "Incorrect email/phone or password.";
+                else if (status === 429) message = "Too many attempts. Please wait and try again.";
+                else if (!err.response) message = "Network error. Check your connection.";
+            } else if (onsubmit && err instanceof Error && err.message) {
+                message = err.message;
+            }
+
+            setFormError(message);
         } finally {
             setLoading(false);
         }
@@ -144,19 +162,28 @@ export default function Login({
 
             <section className="grid place-items-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-[length:22px_22px] px-[1.25rem] py-[2rem]">
                 <form className="box-border grid w-full max-w-[26rem] gap-[1.1rem] rounded-[20px] border border-brand-border bg-brand-surface p-[2.25rem] shadow-brand max-[800px]:p-[1.5rem]" onSubmit={handleSubmit} noValidate>
-                    <h1 className="m-0 font-[family-name:var(--heading)] text-[2rem] leading-[1.1] tracking-[-.02em] text-brand-text-h">Welcome back</h1>
-                    <p className="mt-[-.5rem] mb-[.25rem] leading-[1.5] text-brand-muted">Sign in to {productName} to see today's calls and bookings.</p>
+                    <div>
+                        <p className="mb-2 text-xs font-bold tracking-[.14em] text-brand-primary">WELCOME BACK</p>
+                        <h1 className="m-0 font-[family-name:var(--heading)] text-[2rem] leading-[1.1] tracking-[-.02em] text-brand-text-h">Sign in to your account</h1>
+                        <p className="mt-2 mb-0 text-sm leading-6 text-brand-muted">Access your {productName} calls, appointments, and bookings.</p>
+                    </div>
 
+                    {/* TODO: Google OAuth abhi wired nahi hai, onClick add karna hai */}
                     <button
                         type="button"
-                        className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-[10px] border border-brand-border bg-brand-surface px-4 py-3 font-[inherit] text-sm font-semibold text-brand-text-h transition-colors hover:bg-brand-bg focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2"
+                        className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-[#DADCE0] bg-white px-4 py-3.5 font-[inherit] text-sm font-semibold text-[#3C4043] shadow-[0_2px_5px_rgba(60,64,67,.16)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-px hover:border-[#B8C5D3] hover:shadow-[0_5px_14px_rgba(60,64,67,.2)] focus-visible:outline-2 focus-visible:outline-[#4285F4] focus-visible:outline-offset-2 motion-reduce:transition-none"
                     >
-                        <span className="font-bold text-[#4285F4]" aria-hidden="true">G</span>
+                        <svg className="size-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.05 5.05 0 0 1-2.2 3.31v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.09Z" />
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84A11 11 0 0 0 12 23Z" />
+                            <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.15a11 11 0 0 0 0 9.88l3.69-2.84Z" />
+                            <path fill="#EA4335" d="M12 5.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.85 6.06l3.69 2.84c.87-2.6 3.3-4.54 6.16-4.54Z" />
+                        </svg>
                         Continue with Google
                     </button>
                     <div className="flex items-center gap-3 text-xs text-brand-muted" aria-hidden="true">
                         <span className="h-px flex-1 bg-brand-border" />
-                        or continue with email
+                        OR SIGN IN WITH EMAIL OR PHONE
                         <span className="h-px flex-1 bg-brand-border" />
                     </div>
 
@@ -167,22 +194,25 @@ export default function Login({
                     )}
 
                     <div className="grid gap-[.4rem]">
-                        <label className="text-[.9rem] font-semibold text-brand-text-h" htmlFor="email">Email</label>
+                        <label className="text-[.9rem] font-semibold text-brand-text-h" htmlFor="identity">Email or phone</label>
                         <div className="group relative">
                             <span className="pointer-events-none absolute top-1/2 left-[.85rem] -translate-y-1/2 text-brand-muted group-focus-within:text-brand-primary"><MailIcon /></span>
                             <input
-                                id="email"
-                                type="email"
+                                id="identity"
+                                name="username"
+                                type="text"
                                 className="box-border w-full rounded-[10px] border border-brand-border bg-brand-bg py-[.8rem] pr-[.85rem] pl-[2.6rem] font-[inherit] text-brand-text-h transition-[border-color,box-shadow] duration-150 placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_18%,transparent)] focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2 aria-[invalid=true]:border-brand-danger motion-reduce:transition-none"
-                                autoComplete="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                aria-invalid={!!errors.email}
-                                aria-describedby={errors.email ? "email-err" : undefined}
+                                autoComplete="username"
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                value={identity}
+                                onChange={(e) => setIdentity(e.target.value)}
+                                aria-invalid={!!errors.identity}
+                                aria-describedby={errors.identity ? "identity-err" : undefined}
                                 placeholder="you@business.com"
                             />
                         </div>
-                        {errors.email && <span id="email-err" className="text-[.85rem] text-brand-danger">{errors.email}</span>}
+                        {errors.identity && <span id="identity-err" className="text-[.85rem] text-brand-danger">{errors.identity}</span>}
                     </div>
 
                     <div className="grid gap-[.4rem]">
@@ -191,6 +221,7 @@ export default function Login({
                             <span className="pointer-events-none absolute top-1/2 left-[.85rem] -translate-y-1/2 text-brand-muted group-focus-within:text-brand-primary"><LockIcon /></span>
                             <input
                                 id="password"
+                                name="password"
                                 type={showPassword ? "text" : "password"}
                                 className="box-border w-full rounded-[10px] border border-brand-border bg-brand-bg py-[.8rem] pr-[4.2rem] pl-[2.6rem] font-[inherit] text-brand-text-h transition-[border-color,box-shadow] duration-150 placeholder:text-brand-muted focus:border-brand-primary focus:outline-none focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_18%,transparent)] focus-visible:outline-2 focus-visible:outline-[var(--primary)] focus-visible:outline-offset-2 aria-[invalid=true]:border-brand-danger motion-reduce:transition-none"
                                 autoComplete="current-password"
