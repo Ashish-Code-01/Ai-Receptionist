@@ -4,6 +4,7 @@ import LoginPage from './pages/auth/loginpage';
 import SignupPage from './pages/auth/signupPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import DashboardPage from './pages/Dashboard/dashboardPage';
+import DetailsPage from './pages/auth/detailsPage';
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                 <Route path="/login" element={<LoginPage onForgotPassword={() => window.location.assign('/forgot-password')} />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/details" element={<DetailsPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
             </Routes>
         </BrowserRouter>

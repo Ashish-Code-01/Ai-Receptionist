@@ -72,6 +72,8 @@ export default function SignupPage({
     const [formError, setFormError] = useState("");
     const [loading, setLoading] = useState(false);
     const [created, setCreated] = useState(false);
+    const [signedInAfterSignup, setSignedInAfterSignup] = useState(false);
+    const [signupLoginError, setSignupLoginError] = useState("");
 
     // Typing shuru karte hi us field ka error hata do
     function clearError(key: keyof FieldErrors) {
@@ -110,6 +112,25 @@ export default function SignupPage({
             };
             await axios.post(SIGNUP_URL, payload);
             setCreated(true);
+
+            try {
+                await axios.post(
+                    `${API_BASE_URL}/user/login`,
+                    { identity: trimmedEmail, pass: password },
+                    { withCredentials: true },
+                );
+                setSignedInAfterSignup(true);
+            } catch (loginError: unknown) {
+                setSignedInAfterSignup(false);
+                const loginMessage =
+                    axios.isAxiosError<{ message?: string }>(loginError) &&
+                    typeof loginError.response?.data?.message === "string"
+                        ? loginError.response.data.message
+                        : axios.isAxiosError(loginError) && !loginError.response
+                            ? "Your account was created, but we couldn't connect to sign you in. Please sign in to continue."
+                            : "Your account was created, but automatic sign-in failed. Please sign in to continue.";
+                setSignupLoginError(loginMessage);
+            }
         } catch (error) {
             let message = "Could not create your account. Please try again.";
 
@@ -186,13 +207,20 @@ export default function SignupPage({
                                 Account created
                             </h2>
                             <p className="mt-2 leading-6 text-brand-muted">
-                                Your {productName} account is ready. Sign in to finish setting up your clinic details.
+                                {signedInAfterSignup
+                                    ? `Your ${productName} account is ready. Continue to set up your clinic details.`
+                                    : `Your ${productName} account is ready. Sign in to continue setting up your clinic details.`}
                             </p>
+                            {signupLoginError && (
+                                <p className="mt-3 rounded-xl border border-brand-accent-border bg-brand-accent-bg px-3 py-2 text-sm text-brand-text" role="status">
+                                    {signupLoginError}
+                                </p>
+                            )}
                             <Link
-                                to="/login"
+                                to={signedInAfterSignup ? "/details" : "/login"}
                                 className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] bg-brand-primary px-4 py-3 font-semibold text-brand-on-primary no-underline transition-colors hover:bg-brand-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary motion-reduce:transition-none"
                             >
-                                Go to sign in
+                                {signedInAfterSignup ? "Next step: Clinic details" : "Sign in to continue"}
                             </Link>
                         </div>
                     ) : (

@@ -32,5 +32,6 @@ export const signToken = (id: number, email: string): string => {
 };
 
 export const verifyToken = (token: string) => {
-    return jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return decoded;
 };

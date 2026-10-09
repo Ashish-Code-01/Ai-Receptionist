@@ -50,8 +50,8 @@ export const userLogin = async (req: Request, res: Response) => {
     }
 };
 
-export const userSession = (req: Request, res: Response) => {
-    const token = readSessionToken(req.headers.cookie);
+export const userSession = (_req: Request, res: Response) => {
+    const token = readSessionToken(_req.headers.cookie);
     if (!token) {
         return res.status(401).send({ message: "Authentication required" });
     }

@@ -2,20 +2,17 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../../constants/apis";
-import type { DashboardData, DashboardTab } from "./dashboardTypes";
-import AppointmentsTab from "./AppointmentsTab";
-import CallsTab from "./CallsTab";
-import OverviewTab from "./OverviewTab";
-import SettingsTab from "./SettingsTab";
-import { dateFmt } from "./dashboardFormatters";
+import type { DashboardData, DashboardTab } from "./tabs/dashboardTypes";
+import AppointmentsTab from "./tabs/AppointmentsTab";
+import CallsTab from "./tabs/CallsTab";
+import OverviewTab from "./tabs/OverviewTab";
+import SettingsTab from "./tabs/SettingsTab";
+import { dateFmt } from "./tabs/dashboardFormatters";
 
 type DashboardProps = {
     productName?: string;
 };
 
-/* ---------- Config ---------- */
-
-// TODO: backend ready hone par false kar do
 const USE_DEMO_DATA = true;
 const SESSION_URL = `${API_BASE_URL}/user/session`;
 const DASHBOARD_URL = `${API_BASE_URL}/user/dashboard`;
@@ -75,7 +72,6 @@ async function fetchDashboard(): Promise<DashboardData> {
     return res.data;
 }
 
-/* ---------- Icons ---------- */
 
 const iconProps = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
@@ -173,8 +169,8 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
     const firstName = data?.user.full_name.trim().split(/\s+/)[0] ?? "";
 
     const asideClass = `flex flex-col justify-between gap-6 border-r border-brand-border bg-brand-surface p-5 min-[801px]:sticky min-[801px]:top-0 min-[801px]:h-screen ${navOpen
-            ? "max-[800px]:fixed max-[800px]:inset-y-0 max-[800px]:left-0 max-[800px]:z-30 max-[800px]:w-64 max-[800px]:shadow-brand"
-            : "max-[800px]:hidden"
+        ? "max-[800px]:fixed max-[800px]:inset-y-0 max-[800px]:left-0 max-[800px]:z-30 max-[800px]:w-64 max-[800px]:shadow-brand"
+        : "max-[800px]:hidden"
         }`;
 
     return (
@@ -258,22 +254,6 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
                                     ? `${greeting(now.getHours())}${firstName ? `, ${firstName}` : ""}`
                                     : NAV.find(({ id }) => id === activeTab)?.label}
                             </h1>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <span id="ai-switch-label" className="text-[.9rem] font-semibold text-brand-text-h">
-                                {aiOn ? "Answering calls" : "Paused"}
-                            </span>
-                            <button
-                                type="button"
-                                role="switch"
-                                aria-checked={aiOn}
-                                aria-labelledby="ai-switch-label"
-                                onClick={() => setAiOn((v) => !v)}
-                                className={`relative h-7 w-12 cursor-pointer rounded-full border-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] motion-reduce:transition-none ${aiOn ? "bg-brand-secondary" : "bg-brand-border"}`}
-                            >
-                                <span className={`absolute top-1 left-1 size-5 rounded-full bg-white shadow transition-transform motion-reduce:transition-none ${aiOn ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
                         </div>
                     </div>
 
