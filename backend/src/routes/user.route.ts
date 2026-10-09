@@ -1,12 +1,22 @@
 import { Router } from "express";
 import { rateLimiter } from "../helpers/rateLimiting.js";
 import { authMiddleware } from "../middleware/auth.js";
-import { userLogin, userLogout, userRegister, userSession } from "../controllers/user.controller.js";
+import {
+    finishGoogleOAuth,
+    startGoogleOAuth,
+    userLogin,
+    userLogout,
+    userRegister,
+    userSession,
+} from "../controllers/user.controller.js";
 
 const router = Router();
 
 const ip = (req: any) => req.ip ?? "unknown";
 const id = (v: unknown) => String(v ?? "unknown").trim().toLowerCase().slice(0, 100);
+
+router.get("/google", startGoogleOAuth);
+router.get("/google/callback", finishGoogleOAuth);
 
 router.post(
     "/login",

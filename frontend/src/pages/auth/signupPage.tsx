@@ -18,6 +18,26 @@ type FieldErrors = Partial<Record<keyof SignupData | "confirmPassword", string>>
 
 const SIGNUP_URL = `${API_BASE_URL}/user/signup`;
 
+function getGoogleOAuthMessage() {
+    const error = new URLSearchParams(window.location.search).get("google");
+    switch (error) {
+        case "not_configured":
+            return "Google sign-in isn’t configured yet. Please contact the administrator or sign up with email.";
+        case "cancelled":
+            return "Google sign-in was cancelled.";
+        case "account_conflict":
+            return "This email is linked to a different Google account. Sign in with the account you originally connected.";
+        case "unverified_email":
+            return "Google did not provide a verified email address. Please try another account.";
+        case "invalid_state":
+            return "Your Google sign-in session expired. Please try again.";
+        case "failed":
+            return "Google sign-in failed. Please try again.";
+        default:
+            return "";
+    }
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Allowed chars only; digit count is checked in isValidPhone()
 const PHONE_CHARS_RE = /^\+?[0-9\s()-]+$/;
@@ -69,7 +89,7 @@ export default function SignupPage({
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<FieldErrors>({});
-    const [formError, setFormError] = useState("");
+    const [formError, setFormError] = useState(getGoogleOAuthMessage);
     const [loading, setLoading] = useState(false);
     const [created, setCreated] = useState(false);
     const [signedInAfterSignup, setSignedInAfterSignup] = useState(false);
@@ -242,10 +262,10 @@ export default function SignupPage({
                                     </p>
                                 )}
 
-                                {/* TODO: Google OAuth abhi wired nahi hai, onClick add karna hai */}
                                 <button
                                     type="button"
                                     className="col-span-full flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-[#DADCE0] bg-white px-4 py-3 font-[inherit] text-sm font-semibold text-[#3C4043] shadow-[0_2px_5px_rgba(60,64,67,.16)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-px hover:border-[#B8C5D3] hover:shadow-[0_5px_14px_rgba(60,64,67,.2)] focus-visible:outline-2 focus-visible:outline-[#4285F4] focus-visible:outline-offset-2 motion-reduce:transition-none"
+                                    onClick={() => window.location.assign(`${API_BASE_URL}/user/google?flow=signup`)}
                                 >
                                     <svg className="size-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.05 5.05 0 0 1-2.2 3.31v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.09Z" />
