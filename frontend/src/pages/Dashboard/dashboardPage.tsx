@@ -25,15 +25,11 @@ const NAV = [
     { id: "settings", label: "Settings", Icon: SettingsIcon },
 ] as const;
 
-/* ---------- Formatters ---------- */
-
 function greeting(hour: number) {
     if (hour < 12) return "Good morning";
     if (hour < 17) return "Good afternoon";
     return "Good evening";
 }
-
-/* ---------- Data ---------- */
 
 function buildDemoData(): DashboardData {
     const now = Date.now();
@@ -107,8 +103,6 @@ function DashboardSkeleton() {
     );
 }
 
-/* ---------- Page ---------- */
-
 export default function DashboardPage({ productName = "Receptionist" }: DashboardProps) {
     const navigate = useNavigate();
     const [data, setData] = useState<DashboardData | null>(null);
@@ -116,7 +110,7 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
     const [reloadKey, setReloadKey] = useState(0);
     const [navOpen, setNavOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
-    const [aiOn, setAiOn] = useState(true); // TODO: backend se sync karo
+    const [aiOn, setAiOn] = useState(true);
     const [loggingOut, setLoggingOut] = useState(false);
 
     useEffect(() => {
@@ -145,7 +139,6 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
         };
     }, [reloadKey, navigate]);
 
-    // Escape se mobile menu band
     useEffect(() => {
         if (!navOpen) return;
         const onKey = (e: KeyboardEvent) => e.key === "Escape" && setNavOpen(false);
@@ -158,8 +151,8 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
         setLoggingOut(true);
         try {
             await axios.post(LOGOUT_URL, null, { withCredentials: true });
-        } catch {
-            // Server error ho tab bhi user ko login page pe bhej do
+        } catch (error) {
+            console.error("Logout failed:", error);
         } finally {
             navigate("/login", { replace: true });
         }

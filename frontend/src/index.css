@@ -44,7 +44,6 @@
 }
 
 :root {
-    /* Brand */
     --primary: #E8590C;
     --primary-hover: #C94A08;
     --on-primary: #FFFFFF;
@@ -53,7 +52,6 @@
     --accent-bg: rgba(245, 183, 0, 0.15);
     --accent-border: rgba(245, 183, 0, 0.5);
 
-    /* Surfaces & text */
     --bg: #FFF8F0;
     --surface: #FFFFFF;
     --text: #5C5046;
@@ -64,7 +62,6 @@
     --shadow:
         rgba(43, 33, 24, 0.10) 0 10px 15px -3px, rgba(43, 33, 24, 0.05) 0 4px 6px -2px;
 
-    /* Fonts */
     --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
     --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
     --mono: ui-monospace, Consolas, monospace;
@@ -84,7 +81,6 @@
     }
 }
 
-/* Dark mode: system preference */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
         --primary: #FF7A3D;
@@ -106,7 +102,6 @@
     }
 }
 
-/* Dark mode: manual toggle (document.documentElement.dataset.theme = "dark") */
 :root[data-theme="dark"] {
     --primary: #FF7A3D;
     --primary-hover: #FF9160;

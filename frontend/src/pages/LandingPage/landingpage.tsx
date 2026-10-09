@@ -7,7 +7,6 @@ import {
   Star, Stethoscope, Users, X, Zap,
 } from "lucide-react";
 
-/* ============================ DATA ============================ */
 
 const NAV = ["Features", "How it works", "Pricing", "FAQ"];
 const slug = (s: string) => s.toLowerCase().replace(/\s+/g, "-");
@@ -92,7 +91,6 @@ const plans = [
   },
 ];
 
-// TODO: replace with real customer quotes before launch.
 const testimonials = [
   {
     quote: "The biggest improvement was reducing the number of repetitive calls our reception team had to handle.",
@@ -114,7 +112,6 @@ const footerCols: Record<string, string[]> = {
   Support: ["Help Center", "Documentation", "Contact Support", "FAQ"],
 };
 
-/* =========================== HELPERS =========================== */
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const fadeUp = {
@@ -200,7 +197,6 @@ function FakeQR() {
   );
 }
 
-/* ======================= DASHBOARD MOCKUP ======================= */
 
 const queue = [
   ["#A-021", "Rahul Sharma", "10:30 AM", "Waiting"],
@@ -345,7 +341,6 @@ function DashboardMockup({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/* ============================ NAVBAR ============================ */
 
 function Navbar() {
   const [open, setOpen] = useState(false);
@@ -390,7 +385,6 @@ function Navbar() {
   );
 }
 
-/* ============================== HERO ============================== */
 
 function Hero() {
   return (
@@ -456,7 +450,6 @@ function Hero() {
   );
 }
 
-/* ========================== TRUST STRIP ========================== */
 
 function TrustStrip() {
   return (
@@ -473,7 +466,6 @@ function TrustStrip() {
   );
 }
 
-/* ============================= PROBLEM ============================= */
 
 function ProblemSection() {
   const calls = [
@@ -545,7 +537,6 @@ function ProblemSection() {
   );
 }
 
-/* ============================ FEATURES ============================ */
 
 function FeaturesSection() {
   return (
@@ -576,7 +567,6 @@ function FeaturesSection() {
   );
 }
 
-/* =========================== HOW IT WORKS =========================== */
 
 function HowItWorks() {
   return (
@@ -608,7 +598,6 @@ function HowItWorks() {
   );
 }
 
-/* ============================ DASHBOARD ============================ */
 
 function DashboardSection() {
   return (
@@ -645,7 +634,6 @@ function DashboardSection() {
   );
 }
 
-/* ========================= AI RECEPTIONIST ========================= */
 
 function AIReceptionistSection() {
   const slots = ["10:30 AM", "11:15 AM", "12:00 PM"];
@@ -744,7 +732,6 @@ function AIReceptionistSection() {
   );
 }
 
-/* ============================== CLINIC ============================== */
 
 function ClinicSection() {
   return (
@@ -809,7 +796,6 @@ function ClinicSection() {
   );
 }
 
-/* =========================== BEFORE / AFTER =========================== */
 
 function BeforeAfter() {
   const before = ["Constant phone calls", "Manual appointment entries", "Patients asking for queue status", "Paper/token confusion", "Receptionist overloaded"];
@@ -859,7 +845,6 @@ function BeforeAfter() {
   );
 }
 
-/* ============================== PRICING ============================== */
 
 function PricingSection() {
   return (
@@ -910,7 +895,6 @@ function PricingSection() {
   );
 }
 
-/* ============================ TESTIMONIALS ============================ */
 
 function Testimonials() {
   return (
@@ -943,7 +927,6 @@ function Testimonials() {
   );
 }
 
-/* ================================ FAQ ================================ */
 
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
@@ -978,7 +961,6 @@ function FAQ() {
   );
 }
 
-/* ============================== FINAL CTA ============================== */
 
 function FinalCTA() {
   return (
@@ -1016,7 +998,6 @@ function FinalCTA() {
   );
 }
 
-/* ================================ FOOTER ================================ */
 
 function Footer() {
   const link = "block text-sm text-brand-muted transition hover:text-brand-primary";
@@ -1052,7 +1033,6 @@ function Footer() {
   );
 }
 
-/* ================================= APP ================================= */
 
 export default function App() {
   return (

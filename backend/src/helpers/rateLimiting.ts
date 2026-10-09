@@ -19,7 +19,6 @@ interface Options {
 
 export const rateLimiter = ({ windowMs, max, prefix, keyGenerator }: Options) =>
     async (req: Request, res: Response, next: NextFunction) => {
-        // key ki length cap, taaki Redis me bade keys na bane
         const id = (keyGenerator ? keyGenerator(req) : req.ip ?? "unknown").slice(0, 200);
         const key = `rl:${prefix}:${id}`;
 
@@ -39,7 +38,6 @@ export const rateLimiter = ({ windowMs, max, prefix, keyGenerator }: Options) =>
 
             next();
         } catch (err) {
-            // Redis down ho to app band mat karo (fail-open)
             console.error("Rate limiter error:", err);
             next();
         }

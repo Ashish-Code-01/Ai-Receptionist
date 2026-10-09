@@ -39,7 +39,6 @@ function getGoogleOAuthMessage() {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Allowed chars only; digit count is checked in isValidPhone()
 const PHONE_CHARS_RE = /^\+?[0-9\s()-]+$/;
 
 function isValidPhone(value: string) {
@@ -95,7 +94,6 @@ export default function SignupPage({
     const [signedInAfterSignup, setSignedInAfterSignup] = useState(false);
     const [signupLoginError, setSignupLoginError] = useState("");
 
-    // Typing shuru karte hi us field ka error hata do
     function clearError(key: keyof FieldErrors) {
         setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
     }
@@ -119,7 +117,6 @@ export default function SignupPage({
         setErrors(next);
         if (Object.keys(next).length > 0) return;
 
-        // Spaces/dashes/brackets hata do, taaki login ke identity lookup se match kare
         const normalizedPhone = trimmedPhone.replace(/[\s\-()]/g, "");
 
         setLoading(true);

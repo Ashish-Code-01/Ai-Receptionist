@@ -61,7 +61,6 @@ export default function Login({
     const [formError, setFormError] = useState(getGoogleOAuthMessage);
     const [loading, setLoading] = useState(false);
 
-    // typeof window guard: SSR (Next.js) pe crash nahi hoga
     const [reducedMotion] = useState(
         () =>
             typeof window !== "undefined" &&
@@ -92,7 +91,6 @@ export default function Login({
         setErrors(next);
         if (Object.keys(next).length) return;
 
-        // Email -> lowercase, phone -> spaces/dashes/brackets hata do
         const normalized = isEmail ? raw.toLowerCase() : raw.replace(/[\s\-()]/g, "");
 
         setLoading(true);

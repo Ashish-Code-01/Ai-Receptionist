@@ -16,14 +16,10 @@ import {
 import axios from "axios";
 import { API_BASE_URL } from "../../constants/apis";
 
-/* ============================================================
-   Types
-   ============================================================ */
-
 interface FormState {
     businessName: string;
     services: string[];
-    days: number[]; // 0 = Sunday ... 6 = Saturday
+    days: number[];
     start: string;
     end: string;
     slotDurationMinutes: number;
@@ -39,19 +35,12 @@ interface CreateBusinessResponse {
     id: number;
 }
 
-/** 1 = business details, 2 = connect calendar, 3 = finished */
 type Step = 1 | 2 | 3;
 
 interface Props {
-    /** Step 1 save hone ke baad */
     onCreated?: (id: number) => void;
-    /** Step 2 finish / skip ke baad */
     onFinished?: (id: number) => void;
 }
-
-/* ============================================================
-   Constants
-   ============================================================ */
 
 const DAYS = [
     { n: 1, label: "Mon" },
@@ -80,9 +69,6 @@ const MAX_SERVICE_LENGTH = 60;
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const WHATSAPP_PHONE_ID_PATTERN = /^\d{8,20}$/;
 
-/* ============================================================
-   Helpers
-   ============================================================ */
 
 const getTimezones = (): string[] => {
     try {
@@ -118,7 +104,6 @@ const createInitialForm = (): FormState => ({
     customInstructions: "",
 });
 
-// Time input khali ya adhura ho to NaN ki jagah null milta hai
 const toMinutes = (time: string): number | null => {
     const match = TIME_PATTERN.exec(time);
     return match ? Number(match[1]) * 60 + Number(match[2]) : null;
@@ -127,7 +112,6 @@ const toMinutes = (time: string): number | null => {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
     typeof value === "object" && value !== null;
 
-// Server (zod) ke field names -> form ke field names
 const fieldMap: Partial<Record<string, keyof FormState>> = {
     businessName: "businessName",
     services: "services",
@@ -180,10 +164,6 @@ const primaryButtonClass =
 const secondaryButtonClass =
     "inline-flex items-center justify-center gap-2 rounded-2xl border border-brand-border bg-brand-surface px-5 py-3.5 font-bold text-brand-text-h transition duration-200 hover:border-brand-primary/60 hover:bg-brand-bg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 disabled:cursor-wait disabled:opacity-70 motion-reduce:transition-none";
 
-/* ============================================================
-   Step indicator
-   ============================================================ */
-
 const STEP_ITEMS = [
     { id: 1, label: "Business details" },
     { id: 2, label: "Connect calendar" },
@@ -227,20 +207,15 @@ function StepIndicator({ step }: { step: Step }) {
     );
 }
 
-/* ============================================================
-   Main component
-   ============================================================ */
 
 export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
     const [step, setStep] = useState<Step>(1);
 
-    /* ---------- step 1 state ---------- */
     const [form, setForm] = useState<FormState>(createInitialForm);
     const [serviceDraft, setServiceDraft] = useState("");
     const [errors, setErrors] = useState<Errors>({});
     const [submitting, setSubmitting] = useState(false);
 
-    /* ---------- step 2 state ---------- */
     const [createdId, setCreatedId] = useState<number | null>(null);
     const [savedName, setSavedName] = useState("");
     const [calendarConnected, setCalendarConnected] = useState(false);
@@ -253,10 +228,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
     const [waToken, setWaToken] = useState("");
     const [waSaving, setWaSaving] = useState(false);
     const [waError, setWaError] = useState<string | null>(null);
-
-    /* ============================================================
-       Step 2: status + OAuth return handling
-       ============================================================ */
 
     const loadStatus = useCallback(async (id: number) => {
         setStatusLoading(true);
@@ -278,7 +249,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
         }
     }, []);
 
-    // Google OAuth se wapas aane par: ?businessId=10&calendar=connected|error
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const rawId = params.get("businessId");
@@ -309,7 +279,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
         if (createdId === null) return;
         setConnecting(true);
         setStepError(null);
-        // Full-page redirect: backend Google consent page pe bhejega
         window.location.href = `${API_BASE_URL}/google/connect?businessId=${createdId}`;
     };
 
@@ -368,10 +337,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
         window.scrollTo({ top: 0 });
     };
 
-    /* ============================================================
-       Step 1: form logic
-       ============================================================ */
-
     const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
         setForm((current) => ({ ...current, [key]: value }));
         setErrors((current) => ({ ...current, [key]: undefined, form: undefined }));
@@ -405,7 +370,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
         updateField("days", nextDays);
     };
 
-    // preview numbers (NaN-safe)
     const startMinutes = toMinutes(form.start);
     const endMinutes = toMinutes(form.end);
     const span = startMinutes !== null && endMinutes !== null ? endMinutes - startMinutes : 0;
@@ -516,10 +480,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
         }
     };
 
-    /* ============================================================
-       Render
-       ============================================================ */
-
     return (
         <main className="min-h-screen bg-[radial-gradient(ellipse_at_top_right,color-mix(in_srgb,var(--primary)_10%,transparent),transparent_34%),linear-gradient(135deg,var(--bg),color-mix(in_srgb,var(--accent)_10%,var(--bg)))] px-4 py-6 text-brand-text sm:px-6 sm:py-10">
             <div className="mx-auto max-w-6xl">
@@ -534,7 +494,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                     <StepIndicator step={step} />
                 </header>
 
-                {/* ======================= STEP 1 ======================= */}
                 {step === 1 && (
                     <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.8fr)] lg:gap-7">
                         <form className={cardClass} onSubmit={onSubmit} noValidate aria-busy={submitting}>
@@ -562,7 +521,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                 </div>
                             )}
 
-                            {/* business name */}
                             <div className="mb-6">
                                 <label className={labelClass} htmlFor="businessName">
                                     Business name
@@ -583,7 +541,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                 )}
                             </div>
 
-                            {/* services */}
                             <div className="mb-7">
                                 <label className={labelClass} htmlFor="services">
                                     Services
@@ -635,7 +592,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                 )}
                             </div>
 
-                            {/* working hours */}
                             <fieldset className="mb-7 rounded-2xl border border-brand-border bg-brand-bg/30 p-4 sm:p-5">
                                 <legend className="px-2 text-base font-extrabold text-brand-text-h">
                                     <span className="mr-2 inline-flex align-middle text-brand-primary">
@@ -700,7 +656,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                 </div>
                             </fieldset>
 
-                            {/* slot + voice */}
                             <div className="mb-6 grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <label className={labelClass} htmlFor="slot">
@@ -746,7 +701,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                 </div>
                             </div>
 
-                            {/* timezone */}
                             <div className="mb-6">
                                 <label className={labelClass} htmlFor="timezone">
                                     <Globe2 className="mr-1.5 inline" size={16} aria-hidden="true" />
@@ -772,7 +726,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                 )}
                             </div>
 
-                            {/* custom instructions */}
                             <div className="mb-8">
                                 <div className="mb-2 flex items-center justify-between gap-4">
                                     <label className="text-sm font-semibold text-brand-text-h" htmlFor="instructions">
@@ -809,7 +762,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                             </button>
                         </form>
 
-                        {/* live preview */}
                         <aside
                             className="rounded-[1.75rem] border border-brand-border/80 bg-brand-surface p-5 shadow-brand-card sm:p-7 lg:sticky lg:top-8"
                             aria-label="Schedule preview"
@@ -890,7 +842,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                     </div>
                 )}
 
-                {/* ======================= STEP 2 ======================= */}
                 {step === 2 && (
                     <section className={`${cardClass} mx-auto max-w-2xl`} aria-labelledby="step2-title" aria-busy={statusLoading}>
                         <div className="mb-8 border-b border-brand-border/70 pb-7">
@@ -926,7 +877,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                             </div>
                         )}
 
-                        {/* Google Calendar */}
                         <div className={`mb-5 rounded-2xl border p-5 transition-colors ${calendarConnected ? "border-green-300 bg-green-50/50 dark:border-green-900 dark:bg-green-950/15" : "border-brand-border bg-brand-bg/20"}`}>
                             <div className="flex items-start gap-4">
                                 <div className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${calendarConnected ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" : "bg-brand-primary/10 text-brand-primary"}`}>
@@ -966,7 +916,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                             )}
                         </div>
 
-                        {/* WhatsApp (optional) */}
                         <div className="mb-8 rounded-2xl border border-brand-border bg-brand-bg/20 p-5">
                             <div className="flex items-start gap-4">
                                 <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary">
@@ -1047,7 +996,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                             )}
                         </div>
 
-                        {/* footer */}
                         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-xs text-brand-muted">
                                 {calendarConnected
@@ -1067,7 +1015,6 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                     </section>
                 )}
 
-                {/* ======================= DONE ======================= */}
                 {step === 3 && (
                     <section
                         className={`${cardClass} mx-auto max-w-xl text-center sm:p-12`}

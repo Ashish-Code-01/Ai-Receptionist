@@ -9,7 +9,6 @@ import {
 } from "../validators/details.js";
 
 
-// utcOffset ko timezone se compute karo, DB me store nahi
 const getUtcOffset = (timeZone: string): string => {
     const part = new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "longOffset" })
         .formatToParts(new Date())
@@ -17,7 +16,6 @@ const getUtcOffset = (timeZone: string): string => {
     return part === "GMT" ? "+00:00" : part.replace("GMT", "");
 };
 
-// DB row -> API response shape
 const toResponse = (r: any) => ({
     id: r.id,
     active: !!r.active,

@@ -18,15 +18,15 @@ async function defaultSubmit(data: ForgotPasswordData) {
         body: JSON.stringify(data),
     });
 
-    let body: { message?: string } = {};
+    let body: { message?: string } | null = null;
     try {
         body = await response.json();
-    } catch {
-        // Ignore empty or non-JSON responses; the status code is enough.
+    } catch (error) {
+        if (!(error instanceof SyntaxError)) throw error;
     }
 
     if (!response.ok) {
-        throw new Error(body.message ?? "We could not send a reset link. Please try again.");
+        throw new Error(body?.message ?? "We could not send a reset link. Please try again.");
     }
 }
 

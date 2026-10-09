@@ -16,7 +16,6 @@ export const businessSchema = z.object({
     customInstructions: z.string().max(2000).optional().nullable(),
 });
 
-// update me sab optional
 export const businessUpdateSchema = businessSchema.partial();
 
 export const whatsappCredentialsSchema = z.object({
