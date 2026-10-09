@@ -212,7 +212,7 @@ function StepIndicator({ step }: { step: Step }) {
                             {done ? <Check size={13} aria-hidden="true" /> : item.id}
                         </span>
                         <span
-                            className={`hidden sm:inline ${current || done ? "text-brand-text-h" : "text-brand-muted"
+                            className={`${current ? "inline" : "hidden sm:inline"} ${current || done ? "text-brand-text-h" : "text-brand-muted"
                                 }`}
                         >
                             {item.label}
@@ -820,7 +820,7 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                         <Sparkles size={12} aria-hidden="true" />
                                         Live preview
                                     </p>
-                                    <h2 className="max-w-64 break-words text-xl font-extrabold leading-tight text-brand-text-h">
+                                    <h2 className="max-w-64 wrap-break-words text-xl font-extrabold leading-tight text-brand-text-h">
                                         {form.businessName.trim() || "Your business"}
                                     </h2>
                                 </div>
@@ -842,7 +842,7 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                                 <div className="flex min-h-0 w-full flex-1 items-end justify-center">
                                                     <div
                                                         className={`w-full max-w-7 rounded-t-lg transition-all ${selected
-                                                            ? "bg-gradient-to-t from-brand-primary to-amber-300"
+                                                            ? "bg-linear-to-t from-brand-primary to-amber-300"
                                                             : "h-1 bg-brand-border"
                                                             }`}
                                                         style={selected ? { height: `${barHeight}%` } : undefined}
