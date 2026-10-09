@@ -144,7 +144,7 @@ export default function SignupPage({
                 setSignedInAfterSignup(false);
                 const loginMessage =
                     axios.isAxiosError<{ message?: string }>(loginError) &&
-                    typeof loginError.response?.data?.message === "string"
+                        typeof loginError.response?.data?.message === "string"
                         ? loginError.response.data.message
                         : axios.isAxiosError(loginError) && !loginError.response
                             ? "Your account was created, but we couldn't connect to sign you in. Please sign in to continue."
@@ -169,29 +169,29 @@ export default function SignupPage({
     }
 
     return (
-        <main className="grid min-h-screen grid-cols-[minmax(0,5fr)_minmax(0,6fr)] bg-brand-bg font-[family-name:var(--sans)] text-brand-text max-[800px]:grid-cols-1">
-            <aside className="relative flex flex-col justify-between gap-6 overflow-hidden bg-brand-primary p-8 text-brand-on-primary before:pointer-events-none before:absolute before:inset-0 before:bg-[repeating-radial-gradient(circle_at_88%_14%,transparent_0_54px,color-mix(in_srgb,var(--on-primary)_11%,transparent)_54px_56px)] [&>*]:relative max-[800px]:gap-5 max-[800px]:px-6 max-[800px]:py-4 max-[800px]:before:hidden">
+        <main className="grid min-h-screen grid-cols-[minmax(0,5fr)_minmax(0,6fr)] bg-brand-bg font-(family-name:--sans) text-brand-text max-[800px]:grid-cols-1">
+            <aside className="relative flex flex-col justify-between gap-6 overflow-hidden bg-brand-primary p-8 text-brand-on-primary before:pointer-events-none before:absolute before:inset-0 before:bg-[repeating-radial-gradient(circle_at_88%_14%,transparent_0_54px,color-mix(in_srgb,var(--on-primary)_11%,transparent)_54px_56px)] :relative max-[800px]:gap-5 max-[800px]:px-6 max-[800px]:py-4 max-[800px]:before:hidden">
                 <Link
                     to="/"
-                    className="flex w-fit items-center gap-[.65rem] font-[family-name:var(--heading)] text-[1.15rem] font-bold text-brand-on-primary no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-on-primary"
+                    className="flex w-fit items-center gap-[.65rem] font-(family-name:--heading) text-[1.15rem] font-bold text-brand-on-primary no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-on-primary"
                 >
                     <span className="grid size-9 place-items-center rounded-[10px] bg-brand-on-primary text-brand-primary" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg viewBox="0 0 24 24" className="size-4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />
                         </svg>
                     </span>
                     {productName}
                 </Link>
 
-                <div className="max-w-[30rem]">
+                <div className="max-w-120">
                     <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[.7rem] font-semibold">
                         <span className="size-2 rounded-full bg-brand-accent" />
                         Your clinic, running smoother
                     </span>
-                    <h1 className="mt-4 font-[family-name:var(--heading)] text-[clamp(1.8rem,3vw,2.8rem)] font-bold leading-[1.08] tracking-[-.03em]">
+                    <h1 className="mt-4 font-(family-name:--heading) text-[clamp(1.8rem,3vw,2.8rem)] font-bold leading-[1.08] tracking-[-.03em]">
                         Make every first impression a great one.
                     </h1>
-                    <p className="mt-3 max-w-[28rem] text-sm leading-6 text-brand-on-primary/80">
+                    <p className="mt-3 max-w-120 text-sm leading-6 text-brand-on-primary/80">
                         Create your account to organize appointments, simplify reception, and give every patient a smoother experience.
                     </p>
 
@@ -216,8 +216,8 @@ export default function SignupPage({
                 </p>
             </aside>
 
-            <section className="grid place-items-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-[length:22px_22px] px-5 py-5">
-                <div className="box-border w-full max-w-[34rem] rounded-[20px] border border-brand-border bg-brand-surface p-6 shadow-brand max-[800px]:p-5">
+            <section className="grid place-items-center bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-size-[22px_22px] px-5 py-5">
+                <div className="box-border w-full max-w-136 rounded-[20px] border border-brand-border bg-brand-surface p-6 shadow-brand max-[800px]:p-5">
                     {created ? (
                         <div className="py-4 text-center" role="status">
                             <span className="mx-auto grid size-14 place-items-center rounded-full bg-brand-accent-bg text-2xl font-bold text-brand-secondary" aria-hidden="true">
@@ -247,7 +247,7 @@ export default function SignupPage({
                         <>
                             <div className="mb-5">
                                 <p className="mb-1 text-xs font-bold tracking-[.14em] text-brand-primary">NEW ACCOUNT</p>
-                                <h2 className="m-0 font-[family-name:var(--heading)] text-[1.65rem] font-bold leading-tight tracking-[-.02em] text-brand-text-h">
+                                <h2 className="m-0 font-(family-name:--heading) text-[1.65rem] font-bold leading-tight tracking-[-.02em] text-brand-text-h">
                                     Set up your account
                                 </h2>
                                 <p className="mt-1.5 text-sm leading-5 text-brand-muted">
@@ -390,7 +390,7 @@ export default function SignupPage({
 
                                 <button
                                     type="submit"
-                                    className="col-span-full mt-1 flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border-0 bg-brand-primary px-4 py-2.5 font-[inherit] text-sm font-semibold text-brand-on-primary shadow-[0_8px_20px_color-mix(in_srgb,var(--primary)_35%,transparent)] transition-[background,transform] duration-150 enabled:hover:[transform:translateY(-1px)] enabled:hover:bg-brand-primary-hover disabled:cursor-progress disabled:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary motion-reduce:transition-none"
+                                    className="col-span-full mt-1 flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border-0 bg-brand-primary px-4 py-2.5 font-[inherit] text-sm font-semibold text-brand-on-primary shadow-[0_8px_20px_color-mix(in_srgb,var(--primary)_35%,transparent)] transition-[background,transform] duration-150 enabled:hover:transform-[translateY(-1px)] enabled:hover:bg-brand-primary-hover disabled:cursor-progress disabled:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary motion-reduce:transition-none"
                                     disabled={loading}
                                 >
                                     {loading && (
