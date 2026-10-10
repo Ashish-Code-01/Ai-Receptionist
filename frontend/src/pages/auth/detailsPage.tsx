@@ -279,7 +279,7 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
         if (createdId === null) return;
         setConnecting(true);
         setStepError(null);
-        window.location.href = `${API_BASE_URL}/google/connect?businessId=${createdId}`;
+        window.location.href = `${API_BASE_URL}/user/google?flow=calendar&businessId=${createdId}`;
     };
 
     const saveWhatsapp = async () => {

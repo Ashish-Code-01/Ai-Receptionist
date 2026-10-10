@@ -84,7 +84,7 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 GOOGLE_REDIRECT_URI=http://localhost:2000/user/google/callback
 ```
 
-Configure the OAuth consent screen for the `openid`, `email`, and `profile` scopes. Google sign-in is unavailable until these settings are provided.
+Configure the OAuth consent screen for the `openid`, `email`, and `profile` scopes for sign-in, and `https://www.googleapis.com/auth/calendar.events` for connecting a business calendar. Calendar connection requests offline access so the receptionist can create events on the connected account's primary calendar after the user leaves the app. Google OAuth is unavailable until the client credentials and redirect URI are configured; calendar access may also require publishing or adding the account as a test user on the consent screen.
 
 ## Validation
 

@@ -1,6 +1,6 @@
-import { Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import { rateLimiter } from "../helpers/rateLimiting.js";
-import { authMiddleware } from "../middleware/auth.js";
+import { AuthRequest, authMiddleware } from "../middleware/auth.js";
 import {
     finishGoogleOAuth,
     startGoogleOAuth,
@@ -14,9 +14,14 @@ const router = Router();
 
 const ip = (req: any) => req.ip ?? "unknown";
 const id = (v: unknown) => String(v ?? "unknown").trim().toLowerCase().slice(0, 100);
+const googleOAuthAuth = (req: Request, res: Response, next: NextFunction) => {
+    const calendarFlow =
+        req.query.flow === "calendar" || req.cookies?.google_oauth_flow === "calendar";
+    return calendarFlow ? authMiddleware(req as AuthRequest, res, next) : next();
+};
 
-router.get("/google", startGoogleOAuth);
-router.get("/google/callback", finishGoogleOAuth);
+router.get("/google", googleOAuthAuth, startGoogleOAuth);
+router.get("/google/callback", googleOAuthAuth, finishGoogleOAuth);
 
 router.post(
     "/login",
