@@ -5,6 +5,9 @@ import "dotenv/config";
 import UserRoute from "./routes/user.route.js"
 import detailsRoute from "./routes/details.route.js"
 import cookieParser from "cookie-parser";
+import whatsappRoute from "./routes/whatsapp.js";
+import whatsappWebhookRoute from "./routes/whatsappWebhook.js";
+import helmet from "helmet";
 
 const app = express();
 app.use(cookieParser());
@@ -13,12 +16,20 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
 }));
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({
+    limit: "10mb",
+    verify: (req, _res, buffer) => {
+        (req as Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer);
+    },
+}));
+app.use(helmet());
 app.use(morgan("dev"));
 app.set("trust proxy", 1);
 
+app.use("/webhook/whatsapp", whatsappWebhookRoute);
 app.use("/user", UserRoute)
 app.use("/details", detailsRoute)
+app.use("/whatsapp", whatsappRoute)
 
 
 app.get("/", (_req: Request, res: Response) => {

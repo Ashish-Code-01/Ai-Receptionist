@@ -1,6 +1,7 @@
 import type { DashboardData } from "./dashboardTypes";
 import { fmtDuration } from "./dashboardFormatters";
 import { AppointmentList, Card, CallList, LiveCall, Stat } from "./dashboardUi";
+import WhatsAppCard from "../../../components/WhatsAppCard";
 
 type OverviewTabProps = {
     data: DashboardData;
@@ -16,6 +17,7 @@ export default function OverviewTab({ data, onSelectTab }: OverviewTabProps) {
 
     return (
         <>
+            <WhatsAppCard />
             {data.liveCall && <LiveCall caller={data.liveCall.caller} startedAt={data.liveCall.startedAt} />}
             <div className="grid grid-cols-4 gap-4 max-[1000px]:grid-cols-2 max-[500px]:grid-cols-1">
                 <Stat label="Calls today" value={String(stats.callsToday)} hint={`${stats.missedToday} missed`} />
