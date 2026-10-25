@@ -12,6 +12,7 @@ import {
 } from "../helpers/token.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { AuthRequest } from "../middleware/auth.js";
+import { encryptAtRest } from "../utils/crypto.js";
 
 const GOOGLE_STATE_COOKIE = "google_oauth_state";
 const GOOGLE_FLOW_COOKIE = "google_oauth_flow";
@@ -33,6 +34,10 @@ interface GoogleUserRow extends RowDataPacket {
 
 interface GoogleBusinessRow extends RowDataPacket {
     google_refresh_token: string | null;
+}
+
+interface DashboardUserRow extends RowDataPacket {
+    full_name: string;
 }
 
 const getFrontendUrl = () => (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
@@ -172,7 +177,7 @@ export const finishGoogleOAuth = async (req: AuthRequest, res: Response) => {
                  SET calendar_id = 'primary',
                      google_refresh_token = COALESCE(?, google_refresh_token)
                  WHERE id = ? AND user_id = ?`,
-                [tokens.refresh_token ?? null, businessId, userId],
+                [tokens.refresh_token ? encryptAtRest(tokens.refresh_token) : null, businessId, userId],
             );
             clearGoogleOAuthCookies(res);
             return res.redirect(`${getFrontendUrl()}/details?businessId=${businessId}`);
@@ -298,6 +303,47 @@ export const userSession = (_req: Request, res: Response) => {
         return res.status(200).send({ authenticated: true });
     } catch {
         return res.status(401).send({ message: "Authentication required" });
+    }
+};
+
+export const userDashboard = async (req: AuthRequest, res: Response) => {
+    try {
+        const [rows] = await pool.execute<DashboardUserRow[]>(
+            "SELECT full_name FROM Users WHERE id = ? LIMIT 1",
+            [req.user!.id],
+        );
+        const user = rows[0];
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const today = new Date();
+        const weekdayFormatter = new Intl.DateTimeFormat("en-IN", { weekday: "short" });
+        const weekly = Array.from({ length: 7 }, (_, index) => {
+            const day = new Date(today);
+            day.setDate(today.getDate() - (6 - index));
+            return { day: weekdayFormatter.format(day), calls: 0 };
+        });
+
+        return res.json({
+            success: true,
+            data: {
+                user: { full_name: user.full_name },
+                stats: {
+                    callsToday: 0,
+                    bookingsToday: 0,
+                    missedToday: 0,
+                    avgDurationSec: 0,
+                },
+                weekly,
+                recentCalls: [],
+                appointments: [],
+                liveCall: null,
+            },
+        });
+    } catch (error) {
+        console.error("Could not load user dashboard", error);
+        return res.status(500).json({ success: false, message: "Could not load dashboard" });
     }
 };
 

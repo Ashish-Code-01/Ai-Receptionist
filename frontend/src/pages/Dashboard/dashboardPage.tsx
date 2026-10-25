@@ -13,8 +13,6 @@ type DashboardProps = {
     productName?: string;
 };
 
-const USE_DEMO_DATA = true;
-const SESSION_URL = `${API_BASE_URL}/user/session`;
 const DASHBOARD_URL = `${API_BASE_URL}/user/dashboard`;
 const LOGOUT_URL = `${API_BASE_URL}/user/logout`;
 
@@ -31,41 +29,12 @@ function greeting(hour: number) {
     return "Good evening";
 }
 
-function buildDemoData(): DashboardData {
-    const now = Date.now();
-    const min = 60_000;
-    const iso = (offsetMin: number) => new Date(now + offsetMin * min).toISOString();
-    const dayFmt = new Intl.DateTimeFormat("en-IN", { weekday: "short" });
-    const counts = [31, 44, 38, 52, 47, 29, 36];
-
-    return {
-        user: { full_name: "Ashish" },
-        stats: { callsToday: 36, bookingsToday: 14, missedToday: 2, avgDurationSec: 134 },
-        weekly: counts.map((calls, i) => ({
-            day: dayFmt.format(new Date(now - (6 - i) * 86_400_000)),
-            calls,
-        })),
-        liveCall: { caller: "Priya Sharma", startedAt: iso(-1) },
-        recentCalls: [
-            { id: "c1", caller: "Rahul Mehta", phone: "+91 97•••• ••08", at: iso(-12), durationSec: 168, outcome: "booked", summary: "Booked a dental check-up for Friday, 10:30." },
-            { id: "c2", caller: "Unknown caller", phone: "+91 88•••• ••45", at: iso(-35), durationSec: 0, outcome: "missed", summary: "Hung up before the greeting finished." },
-            { id: "c3", caller: "Neha Kulkarni", phone: "+91 99•••• ••73", at: iso(-58), durationSec: 96, outcome: "answered", summary: "Asked for clinic timings and parking details." },
-            { id: "c4", caller: "Sameer Joshi", phone: "+91 90•••• ••12", at: iso(-84), durationSec: 241, outcome: "transferred", summary: "Billing dispute, transferred to front desk." },
-            { id: "c5", caller: "Anita Desai", phone: "+91 98•••• ••60", at: iso(-120), durationSec: 142, outcome: "booked", summary: "Rescheduled Thursday visit to Monday, 9:00." },
-        ],
-        appointments: [
-            { id: "a1", patient: "Kiran Patil", at: iso(25), reason: "Root canal follow-up", status: "confirmed" },
-            { id: "a2", patient: "Meera Nair", at: iso(80), reason: "General check-up", status: "confirmed" },
-            { id: "a3", patient: "Rahul Mehta", at: iso(190), reason: "Dental check-up", status: "pending" },
-            { id: "a4", patient: "Farhan Shaikh", at: iso(260), reason: "Teeth cleaning", status: "confirmed" },
-        ],
-    };
-}
-
 async function fetchDashboard(): Promise<DashboardData> {
-    if (USE_DEMO_DATA) return buildDemoData();
-    const res = await axios.get<DashboardData>(DASHBOARD_URL, { withCredentials: true });
-    return res.data;
+    const res = await axios.get<{ success: boolean; data: DashboardData }>(
+        DASHBOARD_URL,
+        { withCredentials: true },
+    );
+    return res.data.data;
 }
 
 
@@ -116,8 +85,7 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
     useEffect(() => {
         let cancelled = false;
 
-        axios.get(SESSION_URL, { withCredentials: true })
-            .then(() => fetchDashboard())
+        fetchDashboard()
             .then((d) => {
                 if (!cancelled) setData(d);
             })

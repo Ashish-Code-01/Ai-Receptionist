@@ -16,6 +16,8 @@ const getEncryptionKey = (): Buffer => {
     return key;
 };
 
+const AT_REST_PREFIX = "enc:v1:";
+
 export const encrypt = (value: string): string => {
     const iv = randomBytes(12);
     const cipher = createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
@@ -42,4 +44,16 @@ export const decrypt = (value: string): string => {
         decipher.update(Buffer.from(encodedCiphertext, "base64")),
         decipher.final(),
     ]).toString("utf8");
+};
+
+/** Mark values encrypted with this format so migrations can safely run more than once. */
+export const encryptAtRest = (value: string): string => `${AT_REST_PREFIX}${encrypt(value)}`;
+
+export const isEncryptedAtRest = (value: string): boolean => value.startsWith(AT_REST_PREFIX);
+
+export const decryptAtRest = (value: string): string => {
+    if (!isEncryptedAtRest(value)) {
+        throw new Error("Stored credential is not encrypted with the supported format");
+    }
+    return decrypt(value.slice(AT_REST_PREFIX.length));
 };

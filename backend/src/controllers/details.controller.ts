@@ -2,6 +2,7 @@ import { Response } from "express";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import pool from "../config/db.js";
 import { AuthRequest } from "../middleware/auth.js";
+import { encryptAtRest } from "../utils/crypto.js";
 import {
     businessSchema,
     businessUpdateSchema,
@@ -134,7 +135,7 @@ export const connectWhatsapp = async (req: AuthRequest, res: Response) => {
              WHERE id = ? AND user_id = ?`,
             [
                 parsed.data.whatsappPhoneNumberId,
-                parsed.data.whatsappToken,
+                encryptAtRest(parsed.data.whatsappToken),
                 businessId,
                 req.user!.id,
             ],

@@ -15,9 +15,10 @@ interface Options {
     max: number;
     prefix: string;
     keyGenerator?: (req: Request) => string;
+    failClosed?: boolean;
 }
 
-export const rateLimiter = ({ windowMs, max, prefix, keyGenerator }: Options) =>
+export const rateLimiter = ({ windowMs, max, prefix, keyGenerator, failClosed = false }: Options) =>
     async (req: Request, res: Response, next: NextFunction) => {
         const id = (keyGenerator ? keyGenerator(req) : req.ip ?? "unknown").slice(0, 200);
         const key = `rl:${prefix}:${id}`;
@@ -38,7 +39,13 @@ export const rateLimiter = ({ windowMs, max, prefix, keyGenerator }: Options) =>
 
             next();
         } catch (err) {
-            console.error("Rate limiter error:", err);
+            console.error("Rate limiter error:", err instanceof Error ? err.message : "Unknown error");
+            if (failClosed) {
+                return res.status(503).json({
+                    success: false,
+                    message: "Authentication is temporarily unavailable",
+                });
+            }
             next();
         }
     };

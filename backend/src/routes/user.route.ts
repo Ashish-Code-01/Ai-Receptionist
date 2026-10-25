@@ -4,6 +4,7 @@ import { AuthRequest, authMiddleware } from "../middleware/auth.js";
 import {
     finishGoogleOAuth,
     startGoogleOAuth,
+    userDashboard,
     userLogin,
     userLogout,
     userRegister,
@@ -25,12 +26,13 @@ router.get("/google/callback", googleOAuthAuth, finishGoogleOAuth);
 
 router.post(
     "/login",
-    rateLimiter({ windowMs: 15 * 60_000, max: 30, prefix: "login-ip", keyGenerator: ip }),
+    rateLimiter({ windowMs: 15 * 60_000, max: 30, prefix: "login-ip", keyGenerator: ip, failClosed: true }),
     rateLimiter({
         windowMs: 15 * 60_000,
         max: 5,
         prefix: "login-id",
         keyGenerator: (req) => `${ip(req)}:${id(req.body?.identity)}`,
+        failClosed: true,
     }),
     userLogin
 );
@@ -42,6 +44,7 @@ router.post(
 );
 
 router.get("/session", authMiddleware, userSession);
+router.get("/dashboard", authMiddleware, userDashboard);
 router.post("/logout", userLogout);
 
 export default router;

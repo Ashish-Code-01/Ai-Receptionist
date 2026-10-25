@@ -14,6 +14,10 @@ if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
 }
 
+if (!/^[\da-fA-F]{64}$/.test(JWT_SECRET)) {
+    throw new Error("JWT_SECRET must be 32 random bytes encoded as 64 hexadecimal characters");
+}
+
 export const readSessionToken = (cookieHeader: string | undefined): string | undefined => {
     const tokenCookie = cookieHeader
         ?.split(";")

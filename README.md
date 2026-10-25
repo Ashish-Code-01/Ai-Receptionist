@@ -39,12 +39,13 @@ CREATE DATABASE ai_receptionist;
 
 Then run `backend/DB-Tables.sql` against that database.
 
-Create `backend/.env` with the database connection, a strong JWT signing secret, and local service URLs:
+Create `backend/.env` with the database connection, strong randomly generated secrets, and local service URLs. Generate independent 32-byte keys (for example, `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`) for `JWT_SECRET` and `WA_TOKEN_ENC_KEY`; each output is 64 hexadecimal characters. Keep these values private and back up `WA_TOKEN_ENC_KEY` securely, since encrypted provider credentials cannot be recovered without it.
 
 ```env
 PORT=2000
 FRONTEND_URL=http://localhost:5173
-JWT_SECRET=replace-with-a-long-random-secret
+JWT_SECRET=replace-with-a-64-character-random-hex-secret
+WA_TOKEN_ENC_KEY=replace-with-a-different-64-character-random-hex-secret
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
@@ -52,6 +53,14 @@ DB_PASSWORD=your-database-password
 DB_NAME=ai_receptionist
 REDIS_URL=redis://127.0.0.1:6379
 ```
+
+After applying the schema and configuring the encryption key, encrypt any existing provider credentials in `Details` before starting the updated backend:
+
+```sh
+pnpm --filter backend migrate:provider-tokens
+```
+
+The migration is safe to rerun. It encrypts legacy plaintext Google refresh and WhatsApp tokens in batches, validates already encrypted values, and stops on a key or data error rather than rewriting credentials it cannot decrypt. Run it against a database backup first in production.
 
 The frontend API URL is currently configured as `http://localhost:2000` in `frontend/src/constants/apis.ts`; keep the backend port at `2000` for local development unless you also update that frontend setting.
 
