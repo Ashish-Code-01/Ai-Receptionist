@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import qrcode from "qrcode-generator";
+import { Download } from "lucide-react";
 import { API_BASE_URL } from "../../../constants/apis";
 import { Card } from "./dashboardUi";
 
@@ -31,6 +32,8 @@ export default function QueueTab({ businessId, clinicName }: { businessId: numbe
     const [amounts, setAmounts] = useState<Record<number, string>>({});
     const [methods, setMethods] = useState<Record<number, PaymentMethod>>({});
     const [copied, setCopied] = useState(false);
+    const [downloadingQr, setDownloadingQr] = useState(false);
+    const [qrError, setQrError] = useState("");
 
     const load = useCallback(async () => {
         if (!businessId) return;
@@ -103,6 +106,60 @@ export default function QueueTab({ businessId, clinicName }: { businessId: numbe
         }
     };
 
+    const downloadQr = async () => {
+        if (!patientUrl || downloadingQr) return;
+        setDownloadingQr(true);
+        setQrError("");
+        try {
+            const code = qrcode(0, "M");
+            code.addData(patientUrl, "Byte");
+            code.make();
+
+            const moduleCount = code.getModuleCount();
+            const quietZone = 4;
+            const scale = 8;
+            const canvas = document.createElement("canvas");
+            canvas.width = (moduleCount + quietZone * 2) * scale;
+            canvas.height = canvas.width;
+            const context = canvas.getContext("2d");
+            if (!context) throw new Error("Could not create an image canvas");
+
+            context.fillStyle = "#FFFFFF";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = "#000000";
+            for (let row = 0; row < moduleCount; row += 1) {
+                for (let column = 0; column < moduleCount; column += 1) {
+                    if (code.isDark(row, column)) {
+                        context.fillRect(
+                            (column + quietZone) * scale,
+                            (row + quietZone) * scale,
+                            scale,
+                            scale,
+                        );
+                    }
+                }
+            }
+
+            const blob = await new Promise<Blob>((resolve, reject) => {
+                canvas.toBlob((value) => {
+                    if (value) resolve(value);
+                    else reject(new Error("Could not encode the QR image"));
+                }, "image/png");
+            });
+            const objectUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = objectUrl;
+            link.download = `${clinicName.trim().replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "clinic"}-check-in-qr.png`;
+            link.click();
+            window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+        } catch (downloadError) {
+            console.error("Could not download queue QR code", downloadError);
+            setQrError("Could not download the QR code. Please try again.");
+        } finally {
+            setDownloadingQr(false);
+        }
+    };
+
     if (!businessId) {
         return <Card title="Walk-in queue" id="queue-title"><p className="m-0 text-sm text-brand-muted">Create a clinic profile before enabling walk-in tokens.</p></Card>;
     }
@@ -113,8 +170,14 @@ export default function QueueTab({ businessId, clinicName }: { businessId: numbe
 
     return (
         <div className="grid gap-5">
-            <Card title="Patient check-in link" id="queue-link-title" action={<button type="button" onClick={copyLink} className="cursor-pointer rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm font-semibold text-brand-text-h">{copied ? "Copied" : "Copy link"}</button>}>
+            <Card title="Patient check-in link" id="queue-link-title" action={<div className="flex flex-wrap gap-2">
+                <button type="button" onClick={copyLink} className="cursor-pointer rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm font-semibold text-brand-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">{copied ? "Copied" : "Copy link"}</button>
+                <button type="button" onClick={() => void downloadQr()} disabled={downloadingQr} className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-brand-border bg-brand-surface px-3 py-2 text-sm font-semibold text-brand-text-h focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] disabled:cursor-wait disabled:opacity-60">
+                    <Download size={16} aria-hidden="true" /> {downloadingQr ? "Preparing PNG…" : "Download PNG"}
+                </button>
+            </div>}>
                 <p className="m-0 mb-3 text-sm text-brand-muted">Share this link or encode it in a QR code for walk-in patients.</p>
+                {qrError && <p role="alert" className="mb-3 text-sm text-brand-danger">{qrError}</p>}
                 <div className="flex flex-wrap items-center gap-5">
                     <img src={qrImage} alt={`QR code for ${clinicName} patient check-in`} className="size-40 rounded-lg border border-brand-border bg-white p-2" />
                     <div className="min-w-0 flex-1"><p className="mb-2 text-sm font-semibold text-brand-text-h">Scan to join today’s queue</p><input aria-label="Patient check-in URL" readOnly value={patientUrl} className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm text-brand-text-h" /></div>
