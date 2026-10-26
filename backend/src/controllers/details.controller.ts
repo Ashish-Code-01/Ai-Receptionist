@@ -158,6 +158,35 @@ export const connectWhatsapp = async (req: AuthRequest, res: Response) => {
     }
 };
 
+export const disconnectCalendar = async (req: AuthRequest, res: Response) => {
+    const businessId = Number(req.params.id);
+    if (!Number.isSafeInteger(businessId) || businessId <= 0) {
+        return res.status(400).json({ success: false, message: "Invalid business ID" });
+    }
+
+    try {
+        const [result] = await pool.execute<ResultSetHeader>(
+            `UPDATE Details
+             SET calendar_id = NULL, google_refresh_token = NULL
+             WHERE id = ? AND user_id = ?`,
+            [businessId, req.user!.id],
+        );
+        if (!result.affectedRows) {
+            const [rows] = await pool.execute<RowDataPacket[]>(
+                "SELECT id FROM Details WHERE id = ? AND user_id = ?",
+                [businessId, req.user!.id],
+            );
+            if (!rows.length) return res.status(404).json({ success: false, message: "Not found" });
+        }
+
+        return res.json({ success: true, message: "Google Calendar disconnected" });
+    } catch (error) {
+        console.error("Could not disconnect Google Calendar", error);
+        return res.status(500).json({ success: false, message: "Could not disconnect Google Calendar" });
+    }
+};
+
+
 export const createBusiness = async (req: AuthRequest, res: Response) => {
     const parsed = businessSchema.safeParse(req.body);
     if (!parsed.success) {

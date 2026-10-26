@@ -20,6 +20,7 @@ export type Appointment = {
 
 export type DashboardData = {
     user: { full_name: string };
+    business: { id: number; name: string; timezone: string } | null;
     stats: {
         callsToday: number;
         bookingsToday: number;
@@ -32,4 +33,4 @@ export type DashboardData = {
     liveCall: { caller: string; startedAt: string } | null;
 };
 
-export type DashboardTab = "overview" | "calls" | "appointments" | "settings";
+export type DashboardTab = "overview" | "calls" | "appointments" | "queue" | "revenue" | "settings";

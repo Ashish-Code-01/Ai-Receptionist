@@ -5,6 +5,7 @@ import SignupPage from './pages/auth/signupPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import DashboardPage from './pages/Dashboard/dashboardPage';
 import DetailsPage from './pages/auth/detailsPage';
+import PublicQueuePage from './pages/Queue/PublicQueuePage';
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/details" element={<DetailsPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/queue/:businessId" element={<PublicQueuePage />} />
             </Routes>
         </BrowserRouter>
     );

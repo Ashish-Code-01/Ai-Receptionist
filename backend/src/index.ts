@@ -7,6 +7,7 @@ import detailsRoute from "./routes/details.route.js"
 import cookieParser from "cookie-parser";
 import whatsappRoute from "./routes/whatsapp.js";
 import whatsappWebhookRoute from "./routes/whatsappWebhook.js";
+import publicQueueRoute from "./routes/publicQueue.route.js";
 import helmet from "helmet";
 
 const app = express();
@@ -29,6 +30,7 @@ app.set("trust proxy", 1);
 app.use("/webhook/whatsapp", whatsappWebhookRoute);
 app.use("/user", UserRoute)
 app.use("/details", detailsRoute)
+app.use("/queue", publicQueueRoute)
 app.use("/whatsapp", whatsappRoute)
 
 

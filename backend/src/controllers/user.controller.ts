@@ -17,6 +17,7 @@ import { encryptAtRest } from "../utils/crypto.js";
 const GOOGLE_STATE_COOKIE = "google_oauth_state";
 const GOOGLE_FLOW_COOKIE = "google_oauth_flow";
 const GOOGLE_BUSINESS_COOKIE = "google_oauth_business";
+const GOOGLE_SETTINGS_COOKIE = "google_oauth_settings";
 const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
 const GOOGLE_OAUTH_COOKIE_OPTIONS = {
     httpOnly: true,
@@ -38,6 +39,9 @@ interface GoogleBusinessRow extends RowDataPacket {
 
 interface DashboardUserRow extends RowDataPacket {
     full_name: string;
+    business_id: number | null;
+    business_name: string | null;
+    business_timezone: string | null;
 }
 
 const getFrontendUrl = () => (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
@@ -46,6 +50,7 @@ const clearGoogleOAuthCookies = (res: Response) => {
     res.clearCookie(GOOGLE_STATE_COOKIE, GOOGLE_OAUTH_COOKIE_OPTIONS);
     res.clearCookie(GOOGLE_FLOW_COOKIE, GOOGLE_OAUTH_COOKIE_OPTIONS);
     res.clearCookie(GOOGLE_BUSINESS_COOKIE, GOOGLE_OAUTH_COOKIE_OPTIONS);
+    res.clearCookie(GOOGLE_SETTINGS_COOKIE, GOOGLE_OAUTH_COOKIE_OPTIONS);
 };
 
 const redirectToGoogleError = (
@@ -56,6 +61,7 @@ const redirectToGoogleError = (
     requestedBusinessId?: number,
 ) => {
     const businessId = requestedBusinessId ?? req.cookies?.[GOOGLE_BUSINESS_COOKIE];
+    const returnToSettings = req.cookies?.[GOOGLE_SETTINGS_COOKIE] === "true";
     clearGoogleOAuthCookies(res);
     if (flow === "calendar") {
         const validBusinessId = typeof businessId === "number"
@@ -63,9 +69,11 @@ const redirectToGoogleError = (
             : typeof businessId === "string" && /^\d+$/.test(businessId)
                 ? Number(businessId)
             : null;
-        const destination = validBusinessId && Number.isSafeInteger(validBusinessId) && validBusinessId > 0
-            ? `/details?businessId=${validBusinessId}&calendar=error`
-            : "/dashboard?calendar=error";
+        const destination = returnToSettings
+            ? "/dashboard?tab=settings&calendar=error"
+            : validBusinessId && Number.isSafeInteger(validBusinessId) && validBusinessId > 0
+                ? `/details?businessId=${validBusinessId}&calendar=error`
+                : "/dashboard?calendar=error";
         return res.redirect(`${getFrontendUrl()}${destination}`);
     }
     return res.redirect(`${getFrontendUrl()}/${flow === "login" ? "login" : "signup"}?google=${error}`);
@@ -91,6 +99,11 @@ export const startGoogleOAuth = async (req: AuthRequest, res: Response) => {
             return res.redirect(`${getFrontendUrl()}/dashboard?calendar=error`);
         }
         res.cookie(GOOGLE_BUSINESS_COOKIE, String(businessId), GOOGLE_OAUTH_COOKIE_OPTIONS);
+        if (req.query.source === "settings") {
+            res.cookie(GOOGLE_SETTINGS_COOKIE, "true", GOOGLE_OAUTH_COOKIE_OPTIONS);
+        } else {
+            res.clearCookie(GOOGLE_SETTINGS_COOKIE, GOOGLE_OAUTH_COOKIE_OPTIONS);
+        }
     }
 
     const client = createGoogleOAuthClient();
@@ -180,7 +193,10 @@ export const finishGoogleOAuth = async (req: AuthRequest, res: Response) => {
                 [tokens.refresh_token ? encryptAtRest(tokens.refresh_token) : null, businessId, userId],
             );
             clearGoogleOAuthCookies(res);
-            return res.redirect(`${getFrontendUrl()}/details?businessId=${businessId}`);
+            const destination = req.cookies?.[GOOGLE_SETTINGS_COOKIE] === "true"
+                ? "/dashboard?tab=settings&calendar=connected"
+                : `/details?businessId=${businessId}`;
+            return res.redirect(`${getFrontendUrl()}${destination}`);
         }
 
         if (!tokens.id_token || !process.env.GOOGLE_CLIENT_ID) {
@@ -309,7 +325,11 @@ export const userSession = (_req: Request, res: Response) => {
 export const userDashboard = async (req: AuthRequest, res: Response) => {
     try {
         const [rows] = await pool.execute<DashboardUserRow[]>(
-            "SELECT full_name FROM Users WHERE id = ? LIMIT 1",
+            `SELECT full_name,
+                    (SELECT id FROM Details WHERE user_id = Users.id ORDER BY id LIMIT 1) AS business_id,
+                    (SELECT business_name FROM Details WHERE user_id = Users.id ORDER BY id LIMIT 1) AS business_name,
+                    (SELECT timezone FROM Details WHERE user_id = Users.id ORDER BY id LIMIT 1) AS business_timezone
+             FROM Users WHERE id = ? LIMIT 1`,
             [req.user!.id],
         );
         const user = rows[0];
@@ -329,6 +349,11 @@ export const userDashboard = async (req: AuthRequest, res: Response) => {
             success: true,
             data: {
                 user: { full_name: user.full_name },
+                business: user.business_id ? {
+                    id: user.business_id,
+                    name: user.business_name ?? "Clinic",
+                    timezone: user.business_timezone ?? "Asia/Kolkata",
+                } : null,
                 stats: {
                     callsToday: 0,
                     bookingsToday: 0,

@@ -9,6 +9,7 @@ AI Receptionist is a web app for clinics to configure a virtual receptionist and
 - Optional WhatsApp credentials setup and a calendar-connection step.
 - Dashboard sections for overview, calls, appointments, and settings. The dashboard currently displays demo data.
 - Backend endpoints for user sessions and business profile management.
+- Same-day walk-in token check-in with a clinic QR code, live queue controls, manual payment tracking, and revenue summaries.
 
 ## Tech stack
 
@@ -39,6 +40,8 @@ CREATE DATABASE ai_receptionist;
 
 Then run `backend/DB-Tables.sql` against that database.
 
+For an existing database, apply `backend/migrations/001_daily_queue.sql` once to add the walk-in queue and payment tables.
+
 Create `backend/.env` with the database connection, strong randomly generated secrets, and local service URLs. Generate independent 32-byte keys (for example, `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`) for `JWT_SECRET` and `WA_TOKEN_ENC_KEY`; each output is 64 hexadecimal characters. Keep these values private and back up `WA_TOKEN_ENC_KEY` securely, since encrypted provider credentials cannot be recovered without it.
 
 ```env
@@ -52,7 +55,10 @@ DB_USER=root
 DB_PASSWORD=your-database-password
 DB_NAME=ai_receptionist
 REDIS_URL=redis://127.0.0.1:6379
+REDIS_PASSWORD=redispass
 ```
+
+`REDIS_PASSWORD` must match the Redis server password. The local Docker Compose Redis service defaults to `redispass`; set a different strong value in `backend/.env` when overriding it.
 
 After applying the schema and configuring the encryption key, encrypt any existing provider credentials in `Details` before starting the updated backend:
 

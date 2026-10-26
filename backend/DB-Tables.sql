@@ -42,6 +42,37 @@ CREATE TABLE
     );
 
 CREATE TABLE
+    IF NOT EXISTS queue_counters (
+        business_id INT NOT NULL,
+        token_date DATE NOT NULL,
+        last_token INT NOT NULL DEFAULT 0,
+        PRIMARY KEY (business_id, token_date),
+        CONSTRAINT fk_queue_counters_business FOREIGN KEY (business_id) REFERENCES Details (id) ON DELETE CASCADE
+    );
+
+CREATE TABLE
+    IF NOT EXISTS queue_visits (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        business_id INT NOT NULL,
+        token_date DATE NOT NULL,
+        token_number INT NOT NULL,
+        patient_name VARCHAR(100) NOT NULL,
+        patient_phone VARCHAR(24) NOT NULL,
+        status ENUM ('waiting', 'ongoing', 'done', 'cancelled') NOT NULL DEFAULT 'waiting',
+        payment_status ENUM ('pending', 'paid', 'waived') NOT NULL DEFAULT 'pending',
+        payment_amount DECIMAL(10, 2) NULL,
+        payment_method ENUM ('cash', 'card', 'upi', 'other') NULL,
+        paid_at DATETIME NULL,
+        paid_date DATE NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uq_queue_daily_token (business_id, token_date, token_number),
+        KEY idx_queue_today (business_id, token_date, status, token_number),
+        KEY idx_queue_revenue (business_id, payment_status, paid_date),
+        CONSTRAINT fk_queue_visits_business FOREIGN KEY (business_id) REFERENCES Details (id) ON DELETE CASCADE
+    );
+
+CREATE TABLE
     IF NOT EXISTS whatsapp_connections (
         id INT NOT NULL AUTO_INCREMENT,
         user_id INT NOT NULL,

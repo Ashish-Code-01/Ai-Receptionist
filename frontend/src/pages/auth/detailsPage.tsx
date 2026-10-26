@@ -7,6 +7,7 @@ import {
     Check,
     Clock3,
     Globe2,
+    LayoutDashboard,
     LoaderCircle,
     MessageCircle,
     Mic2,
@@ -14,6 +15,7 @@ import {
     X,
 } from "lucide-react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../constants/apis";
 
 interface FormState {
@@ -209,6 +211,7 @@ function StepIndicator({ step }: { step: Step }) {
 
 
 export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
+    const navigate = useNavigate();
     const [step, setStep] = useState<Step>(1);
 
     const [form, setForm] = useState<FormState>(createInitialForm);
@@ -1034,9 +1037,14 @@ export default function BusinessOnboarding({ onCreated, onFinished }: Props) {
                                 ? "Your receptionist can now book appointments. An admin will assign your phone number."
                                 : "Connect Google Calendar later to turn on booking. An admin will assign your phone number."}
                         </p>
-                        <button type="button" className={`${primaryButtonClass} mt-8`} onClick={startOver}>
-                            Add another business <ArrowRight size={18} aria-hidden="true" />
-                        </button>
+                        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                            <button type="button" className={primaryButtonClass} onClick={startOver}>
+                                Add another business <ArrowRight size={18} aria-hidden="true" />
+                            </button>
+                            <button type="button" className={secondaryButtonClass} onClick={() => navigate("/dashboard")}>
+                                Go to dashboard <LayoutDashboard size={18} aria-hidden="true" />
+                            </button>
+                        </div>
                     </section>
                 )}
             </div>

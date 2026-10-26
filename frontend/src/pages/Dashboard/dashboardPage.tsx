@@ -7,6 +7,8 @@ import AppointmentsTab from "./tabs/AppointmentsTab";
 import CallsTab from "./tabs/CallsTab";
 import OverviewTab from "./tabs/OverviewTab";
 import SettingsTab from "./tabs/SettingsTab";
+import QueueTab from "./tabs/QueueTab";
+import RevenueTab from "./tabs/RevenueTab";
 import { dateFmt } from "./tabs/dashboardFormatters";
 
 type DashboardProps = {
@@ -20,6 +22,8 @@ const NAV = [
     { id: "overview", label: "Overview", Icon: GridIcon },
     { id: "calls", label: "Calls", Icon: PhoneIcon },
     { id: "appointments", label: "Appointments", Icon: CalendarIcon },
+    { id: "queue", label: "Walk-in queue", Icon: QueueIcon },
+    { id: "revenue", label: "Revenue", Icon: RevenueIcon },
     { id: "settings", label: "Settings", Icon: SettingsIcon },
 ] as const;
 
@@ -52,6 +56,12 @@ function CalendarIcon() {
 function SettingsIcon() {
     return (<svg {...iconProps} aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" /></svg>);
 }
+function QueueIcon() {
+    return (<svg {...iconProps} aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /><circle cx="7" cy="6" r="1" fill="currentColor" /><circle cx="7" cy="12" r="1" fill="currentColor" /><circle cx="7" cy="18" r="1" fill="currentColor" /></svg>);
+}
+function RevenueIcon() {
+    return (<svg {...iconProps} aria-hidden="true"><path d="M3 19h18M6 16V9M12 16V5M18 16v-4" /><path d="m4 7 6-3 5 3 5-4" /></svg>);
+}
 function LogoutIcon() {
     return (<svg {...iconProps} aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5M21 12H9" /></svg>);
 }
@@ -78,7 +88,9 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
     const [error, setError] = useState("");
     const [reloadKey, setReloadKey] = useState(0);
     const [navOpen, setNavOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
+    const [activeTab, setActiveTab] = useState<DashboardTab>(() =>
+        new URLSearchParams(window.location.search).get("tab") === "settings" ? "settings" : "overview",
+    );
     const [aiOn, setAiOn] = useState(true);
     const [loggingOut, setLoggingOut] = useState(false);
 
@@ -241,8 +253,10 @@ export default function DashboardPage({ productName = "Receptionist" }: Dashboar
                     )}
                     {data && activeTab === "calls" && <CallsTab data={data} />}
                     {data && activeTab === "appointments" && <AppointmentsTab data={data} />}
+                    {data && activeTab === "queue" && <QueueTab businessId={data.business?.id ?? null} clinicName={data.business?.name ?? "your clinic"} />}
+                    {data && activeTab === "revenue" && <RevenueTab businessId={data.business?.id ?? null} timezone={data.business?.timezone ?? "Asia/Kolkata"} />}
                     {activeTab === "settings" && (
-                        <SettingsTab enabled={aiOn} onChange={setAiOn} />
+                        <SettingsTab enabled={aiOn} onChange={setAiOn} businessId={data?.business?.id ?? null} />
                     )}
                 </main>
             </div>
